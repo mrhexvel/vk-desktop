@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -13,9 +13,13 @@ let win;
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    height: 900,
+    width: 1300,
     webPreferences: {
-      preload: path.join(__dirname, "preload.mjs")
-    }
+      preload: path.join(__dirname, "preload.mjs"),
+      contextIsolation: true
+    },
+    frame: false
   });
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
@@ -37,7 +41,9 @@ app.on("activate", () => {
     createWindow();
   }
 });
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+});
 export {
   MAIN_DIST,
   RENDERER_DIST,

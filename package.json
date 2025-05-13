@@ -10,8 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.9",
+    "@radix-ui/react-scroll-area": "^1.2.8",
+    "@radix-ui/react-slot": "^1.2.2",
+    "@tailwindcss/vite": "^4.1.6",
+    "@vkid/sdk": "^2.5.2",
+    "@vkontakte/vkui": "^7.3.3",
+    "axios": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "electron-store": "^10.0.1",
+    "lucide-react": "^0.510.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-lines-ellipsis": "^0.15.4",
+    "tailwind-merge": "^3.3.0",
+    "tailwindcss": "^4.1.6"
   },
   "devDependencies": {
     "@types/react": "^18.2.64",
@@ -19,13 +33,14 @@
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^30.0.1",
+    "electron-builder": "^24.13.3",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "tw-animate-css": "^1.2.9",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
-    "electron": "^30.0.1",
-    "electron-builder": "^24.13.3",
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5"
   },

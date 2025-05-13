@@ -1,24 +1,11 @@
-import { ipcRenderer, contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from "electron";
 
-// --------- Expose some API to the Renderer process ---------
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
-  },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.off(channel, ...omit)
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.send(channel, ...omit)
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.invoke(channel, ...omit)
-  },
+contextBridge.exposeInMainWorld("electron", {
+  vkApiRequest: (method: string, params: Record<string, unknown>) =>
+    ipcRenderer.invoke("vk-api-request", method, params),
 
-  // You can expose other APTs you need here.
-  // ...
-})
+  startLongPoll: (token: string) => ipcRenderer.send("start-longpoll", token),
+
+  onLongPollUpdate: (callback: (update: unknown) => void) =>
+    ipcRenderer.on("longpoll-update", (event, update) => callback(update)),
+});
