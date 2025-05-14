@@ -80,6 +80,30 @@ ipcMain.handle("vk:getConversations", async (event, accessToken: string) => {
   }
 });
 
+ipcMain.handle(
+  "vk:execute",
+  async (event, accessToken: string, code: string) => {
+    try {
+      const response = await axios.get("https://api.vk.com/method/execute", {
+        params: {
+          access_token: accessToken,
+          v: "5.131",
+          code,
+        },
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+
+      return response.data.response;
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      throw error;
+    }
+  }
+);
+
 app.whenReady().then(() => {
   createWindow();
 });

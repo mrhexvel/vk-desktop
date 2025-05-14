@@ -4,7 +4,9 @@ import {
   VKGroup,
   VKProfile,
 } from "@/types/vk.type";
+import { getMessageSendersInfo } from "@/utils/vk.util";
 import { MoreVertical, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import ChatList from "./ChatList";
 import { StoryCircle } from "./StoryCyrcle";
 import { Button } from "./ui/button";
@@ -30,6 +32,32 @@ export const Sidebar = ({
   onSelect,
   getAvatar,
 }: SidebarProps) => {
+  const [messageSenders, setMessageSenders] = useState<
+    Record<number, { firstName?: string; groupName?: string }>
+  >({});
+
+  useEffect(() => {
+    const fromIds = conversations
+      .map((c) => c.last_message.from_id)
+      .filter(Boolean);
+
+    if (fromIds.length > 0) {
+      getMessageSendersInfo(fromIds).then((data) => {
+        const senders: typeof messageSenders = {};
+
+        data.users?.forEach((user) => {
+          senders[user.id] = { firstName: user.first_name };
+        });
+
+        data.groups?.forEach((group) => {
+          senders[-group.id] = { groupName: group.name };
+        });
+
+        setMessageSenders(senders);
+      });
+    }
+  }, [conversations]);
+
   return (
     <aside className="w-[280px] border-r border-[#2a2a3a] flex-shrink-0 flex flex-col">
       <div className="p-4 flex justify-between items-center">
@@ -79,6 +107,7 @@ export const Sidebar = ({
           activeId={activeId}
           onSelect={onSelect}
           getAvatar={getAvatar}
+          messageSenders={messageSenders}
         />
       </ScrollArea>
     </aside>

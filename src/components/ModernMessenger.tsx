@@ -1,5 +1,5 @@
 import { mockVkApiData } from "@/mocks/sidebar.mock";
-import { VKApiService } from "@/services/vk.service";
+import { VKApiService, vkService } from "@/services/vk.service";
 import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
 import { useEffect, useState } from "react";
 import { ChatHeader } from "./ChatHeader";
@@ -27,9 +27,6 @@ export const ModernMessenger = () => {
   ];
 
   useEffect(() => {
-    // а ну без осуждений! это просто для теста!
-    const vkService = new VKApiService("");
-
     const fetchConversations = async () => {
       try {
         setLoading(true);

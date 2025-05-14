@@ -151,3 +151,8 @@ export interface UserData {
   first_name: string;
   photo_100: string;
 }
+
+export interface ExecuteProfiles {
+  users: VKProfile[];
+  groups: VKGroup[];
+}

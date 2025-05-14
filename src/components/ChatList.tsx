@@ -16,6 +16,7 @@ interface ChatListProps {
   activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
   getAvatar: (conversation: VKConversationItem) => string | undefined;
+  messageSenders: Record<number, { firstName?: string; groupName?: string }>;
 }
 
 const MessageAttachmentTypes = {
@@ -32,12 +33,14 @@ const ChatListItem = memo(
     activeId,
     onSelect,
     getAvatar,
+    messageSenders,
   }: {
     conversation: VKConversationItem;
     profiles: VKProfile[];
     activeId: number | undefined;
     onSelect: (conversation: VKConversationItem) => void;
     getAvatar: (conversation: VKConversationItem) => string | undefined;
+    messageSenders: Record<number, { firstName?: string; groupName?: string }>;
   }) => {
     const chatTitle = useMemo(
       () => getChatTitle(profiles, conversation),
@@ -70,14 +73,27 @@ const ChatListItem = memo(
       [conversation.last_message]
     );
 
+    const senderName = useMemo(() => {
+      const fromId = conversation.last_message.from_id;
+      const sender = messageSenders[fromId];
+
+      if (sender?.firstName) {
+        return sender.firstName;
+      }
+      if (sender?.groupName) {
+        return sender.groupName;
+      }
+      return `id${fromId}`;
+    }, [conversation.last_message.from_id, messageSenders]);
+
     return (
       <div
         key={conversation.conversation.peer.id}
         onClick={() => onSelect(conversation)}
         className={cn(
-          "m-3 cursor-pointer hover:bg-[#2a2a5a] rounded-xl shadow shadow-gray-800 transition-colors",
+          "m-3 cursor-pointer hover:bg-[#2a2e3a] rounded-xl transition-colors",
           {
-            "bg-[#2a2a3a]": activeId === conversation.conversation.peer.id,
+            "bg-white/10": activeId === conversation.conversation.peer.id,
           }
         )}
       >
@@ -91,8 +107,8 @@ const ChatListItem = memo(
           <div>
             <h3 className="text-sm font-medium">{chatTitle}</h3>
             <p className="text-xs text-gray-400">
-              id{conversation.last_message.from_id}:{" "}
-              <span className={cn({ "text-blue-400": isAttachment })}>
+              {senderName}:{" "}
+              <span className={cn({ "text-purple-400": isAttachment })}>
                 {cropText(chatLastMessage, 10)}
               </span>
             </p>
@@ -109,6 +125,7 @@ export default function ChatList({
   activeId,
   onSelect,
   getAvatar,
+  messageSenders,
 }: ChatListProps) {
   return (
     <ScrollArea className="h-72 rounded-md">
@@ -121,6 +138,7 @@ export default function ChatList({
             activeId={activeId}
             onSelect={onSelect}
             getAvatar={getAvatar}
+            messageSenders={messageSenders}
           />
         ))}
       </div>

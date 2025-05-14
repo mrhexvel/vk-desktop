@@ -1,4 +1,5 @@
 import {
+  ExecuteProfiles,
   VKConversationItem,
   VKGetConversationsResponse,
   VKGroup,
@@ -15,10 +16,19 @@ export class VKApiService {
   async getConversations(): Promise<VKGetConversationsResponse["response"]> {
     try {
       const response = await window.vkApi.getConversations(this.accessToken);
-
       return response;
     } catch (error) {
       console.error("Error fetching conversations:", error);
+      throw error;
+    }
+  }
+
+  async execute(code: string): Promise<ExecuteProfiles> {
+    try {
+      const response = await window.vkApi.execute(this.accessToken, code);
+      return response;
+    } catch (error) {
+      console.error("Error execute:", error);
       throw error;
     }
   }
@@ -48,6 +58,11 @@ declare global {
       getConversations: (
         accessToken: string
       ) => Promise<VKGetConversationsResponse["response"]>;
+
+      execute: (accessToken: string, code: string) => Promise<ExecuteProfiles>;
     };
   }
 }
+
+// да, я долбаёб, но об этом никому 🤫
+export const vkService = new VKApiService("");
