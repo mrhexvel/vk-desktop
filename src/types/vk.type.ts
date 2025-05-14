@@ -90,7 +90,31 @@ export interface VKAudioMessageAttachment {
   };
 }
 
-export type VKAttachment = VKPhotoAttachment | VKAudioMessageAttachment;
+export interface VKStickerMessageAttachment {
+  type: "sticker";
+  sticker: {
+    animation_url?: string;
+    sticker_id: number;
+    product_id: number;
+  };
+}
+
+export interface VKWallMessageAttachment {
+  type: "wall";
+  wall: {
+    access_key?: string;
+    date: number;
+    id: number;
+    type: string;
+    text?: string;
+  };
+}
+
+export type VKAttachment =
+  | VKPhotoAttachment
+  | VKAudioMessageAttachment
+  | VKStickerMessageAttachment
+  | VKWallMessageAttachment;
 
 export interface VKMessage {
   id: number;

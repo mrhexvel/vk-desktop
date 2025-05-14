@@ -25,7 +25,8 @@
     "react-dom": "^18.2.0",
     "react-lines-ellipsis": "^0.15.4",
     "tailwind-merge": "^3.3.0",
-    "tailwindcss": "^4.1.6"
+    "tailwindcss": "^4.1.6",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.64",

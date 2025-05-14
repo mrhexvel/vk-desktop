@@ -1,4 +1,10 @@
-import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
+import { cn, cropText } from "@/lib/utils";
+import {
+  VKConversationItem,
+  VKGroup,
+  VKMessage,
+  VKProfile,
+} from "@/types/vk.type";
 import { getChatTitle } from "@/utils/vk.util";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 
@@ -18,23 +24,46 @@ export default function ChatList({
   onSelect,
   getAvatar,
 }: ChatListProps) {
+  const formatLastmessage = (lastMessage: VKMessage): string => {
+    if (lastMessage.text !== "") {
+      return lastMessage.text;
+    }
+
+    switch (lastMessage.attachments[0]?.type) {
+      case "sticker":
+        return "Стикер";
+      case "photo":
+        return "Фотография";
+      case "wall":
+        return "Пост";
+      case "audio_message":
+        return "Аудиозапись";
+      default:
+        return "";
+    }
+  };
+
   return (
     <ScrollArea className="h-72 rounded-md">
       <div className="pb-1">
         {conversations.map((conversation) => {
-          const chatTitle = getChatTitle(profiles, conversation);
+          console.log(conversation);
 
+          const chatTitle = getChatTitle(profiles, conversation);
           const chatImage = getAvatar(conversation);
+          const chatLastMessage = formatLastmessage(conversation.last_message);
 
           return (
             <div
               key={conversation.conversation.peer.id}
               onClick={() => onSelect(conversation)}
-              className={`m-3 cursor-pointer hover:bg-[#2a2a5a] rounded-xl shadow shadow-gray-800 transition-colors ${
-                activeId === conversation.conversation.peer.id
-                  ? "bg-[#2a2a3a]"
-                  : ""
-              }`}
+              className={cn(
+                "m-3 cursor-pointer hover:bg-[#2a2a5a] rounded-xl shadow shadow-gray-800 transition-colors",
+                {
+                  "bg-[#2a2a3a]":
+                    activeId === conversation.conversation.peer.id,
+                }
+              )}
             >
               <div className="p-2 flex items-center">
                 <img
@@ -45,7 +74,8 @@ export default function ChatList({
                 <div>
                   <h3 className="text-sm font-medium">{chatTitle}</h3>
                   <p className="text-xs text-gray-400">
-                    {conversation.last_message.text}
+                    id{conversation.last_message.from_id}:{" "}
+                    {cropText(chatLastMessage, 10)}
                   </p>
                 </div>
               </div>

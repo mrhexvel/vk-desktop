@@ -15,6 +15,7 @@ export class VKApiService {
   async getConversations(): Promise<VKGetConversationsResponse["response"]> {
     try {
       const response = await window.vkApi.getConversations(this.accessToken);
+
       return response;
     } catch (error) {
       console.error("Error fetching conversations:", error);
