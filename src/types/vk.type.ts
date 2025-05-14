@@ -116,12 +116,17 @@ export type VKAttachment =
   | VKStickerMessageAttachment
   | VKWallMessageAttachment;
 
+export interface VKAction {
+  type: string;
+}
+
 export interface VKMessage {
   id: number;
   date: number;
   from_id: number;
   text: string;
   attachments: VKAttachment[];
+  action: VKAction;
   conversation_message_id: number;
   peer_id: number;
 }

@@ -1,10 +1,5 @@
 import { cn, cropText } from "@/lib/utils";
-import {
-  VKConversationItem,
-  VKGroup,
-  VKMessage,
-  VKProfile,
-} from "@/types/vk.type";
+import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
 import { getChatTitle } from "@/utils/vk.util";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { memo, useMemo } from "react";
@@ -24,6 +19,12 @@ const MessageAttachmentTypes = {
   photo: "Фотография",
   wall: "Пост",
   audio_message: "Аудиозапись",
+} as const;
+
+const MessageActionTypes = {
+  chat_invite_user_by_link: "Присоединился",
+  chat_invite_user: "Добавлен",
+  chat_kick_user: "Исключён",
 } as const;
 
 const ChatListItem = memo(
@@ -52,26 +53,53 @@ const ChatListItem = memo(
     );
 
     const formatLastMessage = (
-      lastMessage: VKMessage
-    ): { text: string; isAttachment: boolean } => {
-      if (lastMessage.text) {
-        return { text: lastMessage.text, isAttachment: false };
+      conversation: VKConversationItem
+    ): {
+      text: string;
+      isAttachment: boolean;
+      isPrivateChat: boolean;
+      isAction: boolean;
+      actionType?: keyof typeof MessageActionTypes;
+    } => {
+      if (conversation.last_message.action) {
+        const actionType = conversation.last_message.action
+          .type as keyof typeof MessageActionTypes;
+        return {
+          text: MessageActionTypes[actionType] || "Действие",
+          isAttachment: false,
+          isPrivateChat: false,
+          isAction: true,
+          actionType,
+        };
       }
 
-      const attachmentType = lastMessage.attachments[0]
+      if (conversation.last_message.text) {
+        return {
+          text: conversation.last_message.text,
+          isAttachment: false,
+          isPrivateChat: conversation.conversation.peer.id < 2000000000,
+          isAction: false,
+        };
+      }
+
+      const attachmentType = conversation.last_message.attachments[0]
         ?.type as keyof typeof MessageAttachmentTypes;
       const attachmentText = MessageAttachmentTypes[attachmentType] || "";
 
       return {
         text: attachmentText,
         isAttachment: !!attachmentType,
+        isPrivateChat: conversation.conversation.peer.id < 2000000000,
+        isAction: false,
       };
     };
 
-    const { text: chatLastMessage, isAttachment } = useMemo(
-      () => formatLastMessage(conversation.last_message),
-      [conversation.last_message]
-    );
+    const {
+      text: chatLastMessage,
+      isAttachment,
+      isPrivateChat,
+      isAction,
+    } = useMemo(() => formatLastMessage(conversation), [conversation]);
 
     const senderName = useMemo(() => {
       const fromId = conversation.last_message.from_id;
@@ -107,10 +135,37 @@ const ChatListItem = memo(
           <div>
             <h3 className="text-sm font-medium">{chatTitle}</h3>
             <p className="text-xs text-gray-400">
-              {senderName}:{" "}
-              <span className={cn({ "text-purple-400": isAttachment })}>
-                {cropText(chatLastMessage, 10)}
-              </span>
+              {isAction ? (
+                <span className="text-green-400">
+                  <span className="text-purple-400">{senderName}</span>:{" "}
+                  {chatLastMessage}
+                </span>
+              ) : (
+                <>
+                  {isPrivateChat ? (
+                    <span
+                      className={cn({
+                        "text-purple-400": isAttachment,
+                        "text-blue-400": !!isAttachment,
+                      })}
+                    >
+                      {cropText(chatLastMessage, 15)}
+                    </span>
+                  ) : (
+                    <>
+                      {senderName}:{" "}
+                      <span
+                        className={cn({
+                          "text-purple-400": isAttachment,
+                          "text-blue-400": !!isAttachment && !isAction,
+                        })}
+                      >
+                        {cropText(chatLastMessage, 15)}
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
             </p>
           </div>
         </div>
