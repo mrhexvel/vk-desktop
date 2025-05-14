@@ -118,7 +118,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#121218] text-foreground;
     font-family: "Inter", sans-serif;
   }
 }

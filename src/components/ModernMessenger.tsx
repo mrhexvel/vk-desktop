@@ -61,8 +61,6 @@ export const ModernMessenger = () => {
         <Sidebar
           activeMembers={activeMembers}
           conversations={conversations}
-          profiles={profiles}
-          groups={groups}
           activeId={activeConversation?.conversation.peer.id}
           onSelect={(conversation) => setActiveConversation(conversation)}
           getAvatar={(conv) =>
