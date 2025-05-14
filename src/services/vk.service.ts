@@ -33,6 +33,16 @@ export class VKApiService {
     }
   }
 
+  async usersGet(user_ids?: string): Promise<VKProfile> {
+    try {
+      const response = await window.vkApi.usersGet(this.accessToken, user_ids);
+      return response[0];
+    } catch (error) {
+      console.error("Error execute:", error);
+      throw error;
+    }
+  }
+
   static getConversationAvatar(
     conversation: VKConversationItem,
     profiles: VKProfile[],
@@ -60,6 +70,11 @@ declare global {
       ) => Promise<VKGetConversationsResponse["response"]>;
 
       execute: (accessToken: string, code: string) => Promise<ExecuteProfiles>;
+
+      usersGet: (
+        accessToken: string,
+        user_ids?: string
+      ) => Promise<VKProfile[]>;
     };
   }
 }

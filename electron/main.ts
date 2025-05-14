@@ -12,6 +12,7 @@ process.env.APP_ROOT = path.join(__dirname, "..");
 export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+export const VK_API_URL = "https://api.vk.com/method";
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, "public")
@@ -58,13 +59,13 @@ app.on("activate", () => {
 ipcMain.handle("vk:getConversations", async (event, accessToken: string) => {
   try {
     const response = await axios.get(
-      "https://api.vk.com/method/messages.getConversations",
+      `${VK_API_URL}/messages.getConversations`,
       {
         params: {
           access_token: accessToken,
           v: "5.131",
           extended: 1,
-          fields: "photo_100,first_name,last_name,name",
+          fields: "photo_100",
         },
       }
     );
@@ -84,11 +85,32 @@ ipcMain.handle(
   "vk:execute",
   async (event, accessToken: string, code: string) => {
     try {
-      const response = await axios.get("https://api.vk.com/method/execute", {
+      const response = await axios.get(`${VK_API_URL}/execute`, {
+        params: { access_token: accessToken, v: "5.131", code },
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+
+      return response.data.response;
+    } catch (error) {
+      console.error("Error execute request:", error);
+      throw error;
+    }
+  }
+);
+
+ipcMain.handle(
+  "vk:users.get",
+  async (event, accessToken: string, user_ids?: string) => {
+    try {
+      const response = await axios.get(`${VK_API_URL}/users.get`, {
         params: {
           access_token: accessToken,
           v: "5.131",
-          code,
+          user_ids,
+          fields: "photo_100,online,sex,screen_name,online_info",
         },
       });
 
@@ -98,7 +120,7 @@ ipcMain.handle(
 
       return response.data.response;
     } catch (error) {
-      console.error("Error fetching conversations:", error);
+      console.error("Error execute request:", error);
       throw error;
     }
   }

@@ -2,12 +2,12 @@ export interface VKProfile {
   id: number;
   first_name: string;
   last_name: string;
-  photo_50: string;
-  photo_100: string;
+  photo_50?: string;
+  photo_100?: string;
   online: number;
   screen_name: string;
   sex: number;
-  online_info: {
+  online_info?: {
     visible: boolean;
     last_seen: number;
     is_online: boolean;

@@ -1,6 +1,7 @@
+import { useUserStore } from "@/store/userStore";
 import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
 import { getChatTitle } from "@/utils/vk.util";
-import { Info, Phone, Video } from "lucide-react";
+import { Info, NotepadText, Phone, Video } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -21,6 +22,7 @@ export const ChatHeader = ({
   setShowRightSidebar,
   getAvatar,
 }: ChatHeaderProps) => {
+  const data = useUserStore((state) => state.user);
   const isGroupChat = conversation.conversation.peer.type === "chat";
   const chatTitle = getChatTitle(profiles, conversation);
 
@@ -28,22 +30,33 @@ export const ChatHeader = ({
     ? conversation.conversation.chat_settings?.members_count
     : 1;
 
+  const isMyConversation = conversation.conversation.peer.id === data?.id;
+
   return (
     <div className="h-16 flex items-center px-4 border-b border-[#2a2a3a]">
       <div className="flex items-center">
-        <Avatar className="h-8 w-8 mr-3 bg-[#2a2a3a]">
-          <AvatarImage src={getAvatar(conversation)} />
-          <AvatarFallback>{chatTitle?.substring(0, 2)}</AvatarFallback>
-        </Avatar>
+        {isMyConversation ? (
+          <div className="w-8 h-8 rounded-full mr-3 flex items-center justify-center bg-purple-400">
+            <NotepadText />
+          </div>
+        ) : (
+          <Avatar className="h-8 w-8 mr-3 bg-[#2a2a3a]">
+            <AvatarImage src={getAvatar(conversation)} />
+            <AvatarFallback>{chatTitle?.substring(0, 2)}</AvatarFallback>
+          </Avatar>
+        )}
 
         <div>
           <div className="flex items-center">
-            <h2 className="text-sm font-medium">{chatTitle}</h2>
-            <Badge className="ml-2 bg-[#2a2a3a] text-gray-400 p-1 h-5 text-xs">
-              {membersCount} участников
-            </Badge>
+            <h2 className="text-sm font-medium">
+              {isMyConversation ? <p>Избранные</p> : chatTitle}
+            </h2>
+            {!isMyConversation && (
+              <Badge className="ml-2 bg-[#2a2a3a] text-gray-400 p-1 h-5 text-xs">
+                {membersCount} участников
+              </Badge>
+            )}
           </div>
-          <p className="text-xs text-gray-400">12:35 PM</p>
         </div>
       </div>
 

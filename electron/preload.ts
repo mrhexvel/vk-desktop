@@ -6,4 +6,7 @@ contextBridge.exposeInMainWorld("vkApi", {
 
   execute: (accessToken: string, code: string) =>
     ipcRenderer.invoke("vk:execute", accessToken, code),
+
+  usersGet: (accessToken: string, user_ids?: string) =>
+    ipcRenderer.invoke("vk:users.get", accessToken, user_ids),
 });

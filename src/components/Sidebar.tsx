@@ -1,14 +1,9 @@
-import {
-  UserData,
-  VKConversationItem,
-  VKGroup,
-  VKProfile,
-} from "@/types/vk.type";
+import { UserData, VKConversationItem } from "@/types/vk.type";
 import { getMessageSendersInfo } from "@/utils/vk.util";
 import { MoreVertical, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import ChatList from "./ChatList";
-import { StoryCircle } from "./StoryCyrcle";
+import { StoryCircle } from "./StoryCircle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
@@ -16,8 +11,6 @@ import { ScrollArea } from "./ui/scroll-area";
 interface SidebarProps {
   activeMembers: UserData[];
   conversations: VKConversationItem[];
-  profiles: VKProfile[];
-  groups: VKGroup[];
   activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
   getAvatar: (conversation: VKConversationItem) => string | undefined;
@@ -26,8 +19,6 @@ interface SidebarProps {
 export const Sidebar = ({
   activeMembers,
   conversations,
-  profiles,
-  groups,
   activeId,
   onSelect,
   getAvatar,
@@ -59,7 +50,7 @@ export const Sidebar = ({
   }, [conversations]);
 
   return (
-    <aside className="w-[280px] border-r border-[#2a2a3a] flex-shrink-0 flex flex-col">
+    <aside className="w-[320px] border-r border-[#2a2a3a] flex-shrink-0 flex flex-col">
       <div className="p-4 flex justify-between items-center">
         <div className="flex">
           <h1 className="text-lg font-medium">VK DESKTOP</h1>
@@ -102,8 +93,6 @@ export const Sidebar = ({
       <ScrollArea className="flex-1">
         <ChatList
           conversations={conversations}
-          profiles={profiles}
-          groups={groups}
           activeId={activeId}
           onSelect={onSelect}
           getAvatar={getAvatar}

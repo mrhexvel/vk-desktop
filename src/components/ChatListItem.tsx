@@ -1,6 +1,8 @@
 import { cn, cropText } from "@/lib/utils";
+import { useUserStore } from "@/store/userStore";
 import { VKConversationItem } from "@/types/vk.type";
 import { getChatTitle } from "@/utils/vk.util";
+import { NotepadText } from "lucide-react";
 import { memo, useMemo } from "react";
 import {
   MESSAGE_ACTION_TYPES,
@@ -59,6 +61,7 @@ const ChatListItem = memo(
     getAvatar,
     messageSenders,
   }: ChatListItemProps) => {
+    const data = useUserStore((state) => state.user);
     const chatTitle = useMemo(
       () => getChatTitle([], conversation),
       [conversation]
@@ -66,7 +69,7 @@ const ChatListItem = memo(
 
     const chatImage = useMemo(
       () => getAvatar(conversation) || "",
-      [conversation]
+      [conversation, getAvatar]
     );
 
     const {
@@ -82,6 +85,8 @@ const ChatListItem = memo(
       return sender?.firstName || sender?.groupName || `id${fromId}`;
     }, [conversation.last_message.from_id, messageSenders]);
 
+    const isMyConversation = conversation.conversation.peer.id === data?.id;
+
     return (
       <div
         onClick={() => onSelect(conversation)}
@@ -91,14 +96,22 @@ const ChatListItem = memo(
         )}
       >
         <div className="p-2 flex items-center">
-          <img
-            src={chatImage}
-            alt={chatTitle}
-            className="w-10 h-10 rounded-full mr-3"
-            loading="lazy"
-          />
+          {isMyConversation ? (
+            <div className="w-10 h-10 rounded-full mr-3 flex items-center justify-center bg-purple-400">
+              <NotepadText />
+            </div>
+          ) : (
+            <img
+              src={chatImage}
+              alt={chatTitle}
+              className="w-10 h-10 rounded-full mr-3"
+              loading="lazy"
+            />
+          )}
           <div>
-            <h3 className="text-sm font-medium">{chatTitle}</h3>
+            <h3 className="text-sm font-medium">
+              {isMyConversation ? <p>Избранные</p> : chatTitle}
+            </h3>
             <p className="text-xs text-gray-400">
               {isAction ? (
                 <span className="text-green-400">

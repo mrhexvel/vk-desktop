@@ -16736,6 +16736,7 @@ process.env.APP_ROOT = path$1.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path$1.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path$1.join(process.env.APP_ROOT, "dist");
+const VK_API_URL = "https://api.vk.com/method";
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
 function createWindow() {
@@ -16772,13 +16773,13 @@ app.on("activate", () => {
 ipcMain.handle("vk:getConversations", async (event, accessToken) => {
   try {
     const response = await axios.get(
-      "https://api.vk.com/method/messages.getConversations",
+      `${VK_API_URL}/messages.getConversations`,
       {
         params: {
           access_token: accessToken,
           v: "5.131",
           extended: 1,
-          fields: "photo_100,first_name,last_name,name"
+          fields: "photo_100"
         }
       }
     );
@@ -16795,11 +16796,29 @@ ipcMain.handle(
   "vk:execute",
   async (event, accessToken, code) => {
     try {
-      const response = await axios.get("https://api.vk.com/method/execute", {
+      const response = await axios.get(`${VK_API_URL}/execute`, {
+        params: { access_token: accessToken, v: "5.131", code }
+      });
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+      return response.data.response;
+    } catch (error) {
+      console.error("Error execute request:", error);
+      throw error;
+    }
+  }
+);
+ipcMain.handle(
+  "vk:users.get",
+  async (event, accessToken, user_ids) => {
+    try {
+      const response = await axios.get(`${VK_API_URL}/users.get`, {
         params: {
           access_token: accessToken,
           v: "5.131",
-          code
+          user_ids,
+          fields: "photo_100,online,sex,screen_name,online_info"
         }
       });
       if (response.data.error) {
@@ -16807,7 +16826,7 @@ ipcMain.handle(
       }
       return response.data.response;
     } catch (error) {
-      console.error("Error fetching conversations:", error);
+      console.error("Error execute request:", error);
       throw error;
     }
   }
@@ -16818,5 +16837,6 @@ app.whenReady().then(() => {
 export {
   MAIN_DIST,
   RENDERER_DIST,
-  VITE_DEV_SERVER_URL
+  VITE_DEV_SERVER_URL,
+  VK_API_URL
 };
