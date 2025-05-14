@@ -10,7 +10,7 @@ import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
   activeMembers: UserData[];
-  conversations: VKConversationItem[];
+  conversations: VKConversationItem[] | undefined;
   activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
   getAvatar: (conversation: VKConversationItem) => string | undefined;
@@ -29,8 +29,8 @@ export const Sidebar = ({
 
   useEffect(() => {
     const fromIds = conversations
-      .map((c) => c.last_message.from_id)
-      .filter(Boolean);
+      ? conversations.map((c) => c.last_message.from_id).filter(Boolean)
+      : [];
 
     if (fromIds.length > 0) {
       getMessageSendersInfo(fromIds).then((data) => {
@@ -48,6 +48,10 @@ export const Sidebar = ({
       });
     }
   }, [conversations]);
+
+  if (!conversations) {
+    return <p>не</p>;
+  }
 
   return (
     <aside className="w-[320px] border-r border-[#2a2a3a] flex-shrink-0 flex flex-col">

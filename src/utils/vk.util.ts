@@ -6,17 +6,20 @@ const getProfileById = (profiles: VKProfile[], id: number) =>
   profiles.find((p) => p.id === id);
 
 export function getChatTitle(
-  profiles: VKProfile[],
-  conversation: VKConversationItem
+  profiles: VKProfile[] | undefined,
+  conversation: VKConversationItem | undefined
 ) {
-  const isGroupChat = conversation.conversation.peer.type === "chat";
+  const isGroupChat = conversation?.conversation.peer.type === "chat";
+
   if (isGroupChat) {
     return conversation.conversation.chat_settings?.title;
   }
 
   return `${
-    getProfileById(profiles, conversation.conversation.peer.id)?.first_name
-  } ${getProfileById(profiles, conversation.conversation.peer.id)?.last_name}`;
+    getProfileById(profiles!, conversation!.conversation.peer.id)?.first_name
+  } ${
+    getProfileById(profiles!, conversation!.conversation.peer.id)?.last_name
+  }`;
 }
 
 export const getMessageSendersInfo = async (fromIds: number[]) => {
@@ -42,6 +45,7 @@ export const getMessageSendersInfo = async (fromIds: number[]) => {
     if (groupIds.length > 0) {
       result.groups = API.groups.getById({
         group_ids: groupIds,
+        fields: "name",
         v: "5.131"
       });
     }

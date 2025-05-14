@@ -55,7 +55,7 @@ export interface VKConversation {
   last_message_id: number;
   in_read: number;
   out_read: number;
-  unread_count: number;
+  unread_count?: number;
   is_marked_unread: boolean;
   pinned_message?: VKPinnedMessage;
 }

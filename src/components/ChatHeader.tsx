@@ -8,8 +8,8 @@ import { Button } from "./ui/button";
 
 interface ChatHeaderProps {
   conversation: VKConversationItem;
-  profiles: VKProfile[];
-  groups: VKGroup[];
+  profiles: VKProfile[] | undefined;
+  groups: VKGroup[] | undefined;
   showRightSidebar: boolean;
   setShowRightSidebar: (show: boolean) => void;
   getAvatar: (conversation: VKConversationItem) => string | undefined;

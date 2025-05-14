@@ -126,6 +126,31 @@ ipcMain.handle(
   }
 );
 
+ipcMain.handle(
+  "vk:groups.getById",
+  async (event, accessToken: string, group_id: number) => {
+    try {
+      const response = await axios.get(`${VK_API_URL}/groups.getById`, {
+        params: {
+          access_token: accessToken,
+          v: "5.131",
+          group_id,
+          fields: "name",
+        },
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+
+      return response.data.response;
+    } catch (error) {
+      console.error("Error execute request:", error);
+      throw error;
+    }
+  }
+);
+
 app.whenReady().then(() => {
   createWindow();
 });

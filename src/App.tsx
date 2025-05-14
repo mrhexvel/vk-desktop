@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Loader from "./components/Loader";
 import { ModernMessenger } from "./components/ModernMessenger";
+import { useConversationsStore } from "./store/useConversationsStore";
 import { useUserStore } from "./store/userStore";
 
 const App: React.FC = () => {
-  const isLoading = useUserStore((state) => state.isLoading);
+  const isUserLoading = useUserStore((state) => state.isLoading);
   const fetchUser = useUserStore((state) => state.fetchUser);
-  const [isMinTimeElapsed, setIsMinTimeElapsed] = useState(false);
+
+  const isConversationsLoading = useConversationsStore(
+    (state) => state.isLoading
+  );
+  const fetchConversations = useConversationsStore(
+    (state) => state.fetchConversations
+  );
 
   useEffect(() => {
     fetchUser();
-  }, [fetchUser]);
+    fetchConversations();
+  }, [fetchUser, fetchConversations]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMinTimeElapsed(true);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading || !isMinTimeElapsed) {
+  if (isUserLoading || isConversationsLoading) {
     return <Loader />;
   }
 

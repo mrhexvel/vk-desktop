@@ -9,4 +9,7 @@ contextBridge.exposeInMainWorld("vkApi", {
 
   usersGet: (accessToken: string, user_ids?: string) =>
     ipcRenderer.invoke("vk:users.get", accessToken, user_ids),
+
+  groupsGetById: (accessToken: string, group_id: number) =>
+    ipcRenderer.invoke("vk:groups.getById", accessToken, group_id),
 });

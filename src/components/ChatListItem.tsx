@@ -1,4 +1,5 @@
 import { cn, cropText } from "@/lib/utils";
+import { useConversationsStore } from "@/store/useConversationsStore";
 import { useUserStore } from "@/store/userStore";
 import { VKConversationItem } from "@/types/vk.type";
 import { getChatTitle } from "@/utils/vk.util";
@@ -26,6 +27,7 @@ const formatLastMessage = (
   if (last_message.action) {
     const actionType = last_message.action
       .type as keyof typeof MESSAGE_ACTION_TYPES;
+
     return {
       text: MESSAGE_ACTION_TYPES[actionType] || "Действие",
       isAttachment: false,
@@ -45,6 +47,7 @@ const formatLastMessage = (
 
   const attachmentType = last_message.attachments[0]
     ?.type as keyof typeof MESSAGE_ATTACHMENT_TYPES;
+
   return {
     text: MESSAGE_ATTACHMENT_TYPES[attachmentType] || "",
     isAttachment: !!attachmentType,
@@ -62,9 +65,13 @@ const ChatListItem = memo(
     messageSenders,
   }: ChatListItemProps) => {
     const data = useUserStore((state) => state.user);
+    const profiles = useConversationsStore(
+      (state) => state.conversations?.profiles
+    );
+
     const chatTitle = useMemo(
-      () => getChatTitle([], conversation),
-      [conversation]
+      () => getChatTitle(profiles, conversation),
+      [conversation, profiles]
     );
 
     const chatImage = useMemo(
@@ -91,8 +98,8 @@ const ChatListItem = memo(
       <div
         onClick={() => onSelect(conversation)}
         className={cn(
-          "m-3 cursor-pointer hover:bg-[#2a2e3a] rounded-xl transition-colors",
-          activeId === conversation.conversation.peer.id && "bg-white/10"
+          "m-3 cursor-pointer hover:bg-purple-400/10 rounded-xl transition-colors flex items-center justify-between",
+          activeId === conversation.conversation.peer.id && "bg-purple-900/20"
         )}
       >
         <div className="p-2 flex items-center">
@@ -137,6 +144,11 @@ const ChatListItem = memo(
             </p>
           </div>
         </div>
+        {conversation.conversation.unread_count && (
+          <p className="w-5 h-5 flex items-center justify-center bg-gray-600 text-xs rounded-full mr-2">
+            {conversation.conversation.unread_count}
+          </p>
+        )}
       </div>
     );
   }

@@ -43,6 +43,19 @@ export class VKApiService {
     }
   }
 
+  async groupsGetById(group_id: number): Promise<VKGroup> {
+    try {
+      const response = await window.vkApi.groupsGetById(
+        this.accessToken,
+        group_id
+      );
+      return response;
+    } catch (error) {
+      console.error("Error execute:", error);
+      throw error;
+    }
+  }
+
   static getConversationAvatar(
     conversation: VKConversationItem,
     profiles: VKProfile[],
@@ -75,6 +88,11 @@ declare global {
         accessToken: string,
         user_ids?: string
       ) => Promise<VKProfile[]>;
+
+      groupsGetById: (
+        accessToken: string,
+        group_id: number
+      ) => Promise<VKGroup>;
     };
   }
 }
