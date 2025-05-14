@@ -21,7 +21,7 @@ export function StoryCircle({ name, image, isActive }: StoryCircleProps) {
         )}
       >
         <Avatar className="h-14 w-14 border-2 border-[#1e1e2d] bg-[#2a2a3a]">
-          <AvatarImage src={image || "/placeholder.svg"} alt={name} />
+          <AvatarImage src={image || "/avatar.jpg"} alt={name} />
           <AvatarFallback>{name.substring(0, 2)}</AvatarFallback>
         </Avatar>
       </div>

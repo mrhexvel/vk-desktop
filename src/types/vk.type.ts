@@ -122,7 +122,7 @@ export interface MediaItem {
   url: string;
 }
 
-export interface CurrentUser {
+export interface UserData {
   id: number;
   first_name: string;
   photo_100: string;

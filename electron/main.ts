@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from "electron";
+import axios from "axios";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -51,6 +52,31 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+ipcMain.handle("vk:getConversations", async (event, accessToken: string) => {
+  try {
+    const response = await axios.get(
+      "https://api.vk.com/method/messages.getConversations",
+      {
+        params: {
+          access_token: accessToken,
+          v: "5.131",
+          extended: 1,
+          fields: "photo_100,first_name,last_name,name",
+        },
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+
+    return response.data.response;
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    throw error;
   }
 });
 

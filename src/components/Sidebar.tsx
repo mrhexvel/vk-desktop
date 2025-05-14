@@ -1,4 +1,9 @@
-import { VKConversationItem } from "@/types/vk.type";
+import {
+  UserData,
+  VKConversationItem,
+  VKGroup,
+  VKProfile,
+} from "@/types/vk.type";
 import { MoreVertical, Search } from "lucide-react";
 import ChatList from "./ChatList";
 import { StoryCircle } from "./StoryCyrcle";
@@ -7,25 +12,13 @@ import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
-  activeMembers: Array<{
-    id: number;
-    first_name: string;
-    photo_100: string;
-  }>;
+  activeMembers: UserData[];
   conversations: VKConversationItem[];
-  profiles: Array<{
-    id: number;
-    first_name: string;
-    last_name: string;
-    photo_100: string;
-  }>;
-  groups: Array<{
-    id: number;
-    name: string;
-    photo_100: string;
-  }>;
-  activeId: number;
+  profiles: VKProfile[];
+  groups: VKGroup[];
+  activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
+  getAvatar: (conversation: VKConversationItem) => string | undefined;
 }
 
 export const Sidebar = ({
@@ -35,11 +28,17 @@ export const Sidebar = ({
   groups,
   activeId,
   onSelect,
+  getAvatar,
 }: SidebarProps) => {
   return (
-    <div className="w-[280px] border-r border-[#2a2a3a] flex-shrink-0 flex flex-col">
+    <aside className="w-[280px] border-r border-[#2a2a3a] flex-shrink-0 flex flex-col">
       <div className="p-4 flex justify-between items-center">
-        <h1 className="text-lg font-medium">VK DESKTOP</h1>
+        <div className="flex">
+          <h1 className="text-lg font-medium">VK DESKTOP</h1>
+          <span className="flex justify-center items-center px-2 h-4 rounded-sm text-[8px] bg-gray-700 relative -top-1 -left-1 rotate-45">
+            BETA
+          </span>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -79,8 +78,9 @@ export const Sidebar = ({
           groups={groups}
           activeId={activeId}
           onSelect={onSelect}
+          getAvatar={getAvatar}
         />
       </ScrollArea>
-    </div>
+    </aside>
   );
 };

@@ -1,18 +1,24 @@
 import { mockVkApiData } from "@/mocks/sidebar.mock";
-import { useState } from "react";
+import { VKApiService } from "@/services/vk.service";
+import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
+import { useEffect, useState } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { Sidebar } from "./Sidebar";
 
 export const ModernMessenger = () => {
   const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const [activeConversation, setActiveConversation] = useState(
-    mockVkApiData.response.items[0]
-  );
+  const [conversations, setConversations] = useState<VKConversationItem[]>([]);
+  const [profiles, setProfiles] = useState<VKProfile[]>([]);
+  const [groups, setGroups] = useState<VKGroup[]>([]);
+  const [activeConversation, setActiveConversation] =
+    useState<VKConversationItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const currentUser = {
     id: 1,
     first_name: "Вы",
-    photo_100: "/you.png",
+    photo_100: "/you.jpg",
   };
 
   const activeMembers = [
@@ -20,25 +26,65 @@ export const ModernMessenger = () => {
     ...mockVkApiData.response.profiles.slice(0, 3),
   ];
 
+  useEffect(() => {
+    // а ну без осуждений! это просто для теста!
+    const vkService = new VKApiService("");
+
+    const fetchConversations = async () => {
+      try {
+        setLoading(true);
+        const response = await vkService.getConversations();
+        setConversations(response.items);
+        setProfiles(response.profiles);
+        setGroups(response.groups);
+        setActiveConversation(response.items[0] || null);
+      } catch (err) {
+        setError("Не удалось загрузить чаты.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConversations();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-[#121218] text-white">Loading...</div>
+    );
+  }
+
+  if (error) {
+    return <div className="flex h-screen bg-[#121218] text-white">{error}</div>;
+  }
+
   return (
     <div className="flex h-screen bg-[#121218] text-white">
       <div className="w-full flex">
         <Sidebar
           activeMembers={activeMembers}
-          conversations={mockVkApiData.response.items}
-          profiles={mockVkApiData.response.profiles}
-          groups={mockVkApiData.response.groups}
-          activeId={activeConversation.conversation.peer.id}
+          conversations={conversations}
+          profiles={profiles}
+          groups={groups}
+          activeId={activeConversation?.conversation.peer.id}
           onSelect={(conversation) => setActiveConversation(conversation)}
+          getAvatar={(conv) =>
+            VKApiService.getConversationAvatar(conv, profiles, groups)
+          }
         />
         <div className="flex-1 flex flex-col">
-          <ChatHeader
-            conversation={activeConversation}
-            profiles={mockVkApiData.response.profiles}
-            groups={mockVkApiData.response.groups}
-            showRightSidebar={showRightSidebar}
-            setShowRightSidebar={setShowRightSidebar}
-          />
+          {activeConversation && (
+            <ChatHeader
+              conversation={activeConversation}
+              profiles={profiles}
+              groups={groups}
+              showRightSidebar={showRightSidebar}
+              setShowRightSidebar={setShowRightSidebar}
+              getAvatar={(conv) =>
+                VKApiService.getConversationAvatar(conv, profiles, groups)
+              }
+            />
+          )}
         </div>
       </div>
     </div>

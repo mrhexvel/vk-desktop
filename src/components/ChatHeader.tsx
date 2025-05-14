@@ -1,4 +1,5 @@
-import { VKConversationItem } from "@/types/vk.type";
+import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
+import { getChatTitle } from "@/utils/vk.util";
 import { Info, Phone, Video } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -6,57 +7,32 @@ import { Button } from "./ui/button";
 
 interface ChatHeaderProps {
   conversation: VKConversationItem;
-  profiles: Array<{
-    id: number;
-    first_name: string;
-    last_name: string;
-    photo_100: string;
-  }>;
-  groups: Array<{
-    id: number;
-    name: string;
-    photo_100: string;
-  }>;
+  profiles: VKProfile[];
+  groups: VKGroup[];
   showRightSidebar: boolean;
   setShowRightSidebar: (show: boolean) => void;
+  getAvatar: (conversation: VKConversationItem) => string | undefined;
 }
 
 export const ChatHeader = ({
   conversation,
   profiles,
-  groups,
   showRightSidebar,
   setShowRightSidebar,
+  getAvatar,
 }: ChatHeaderProps) => {
   const isGroupChat = conversation.conversation.peer.type === "chat";
-  const groupInfo = isGroupChat
-    ? groups.find((g) => g.id === conversation.conversation.peer.id)
-    : null;
-  const chatTitle = isGroupChat
-    ? conversation.conversation.chat_settings?.title
-    : `${getProfileById(conversation.conversation.peer.id)?.first_name} ${
-        getProfileById(conversation.conversation.peer.id)?.last_name
-      }`;
+  const chatTitle = getChatTitle(profiles, conversation);
 
   const membersCount = isGroupChat
     ? conversation.conversation.chat_settings?.members_count
-    : 2;
-
-  function getProfileById(id: number) {
-    return profiles.find((p) => p.id === id);
-  }
+    : 1;
 
   return (
     <div className="h-16 flex items-center px-4 border-b border-[#2a2a3a]">
       <div className="flex items-center">
         <Avatar className="h-8 w-8 mr-3 bg-[#2a2a3a]">
-          <AvatarImage
-            src={
-              isGroupChat
-                ? groupInfo?.photo_100
-                : getProfileById(conversation.conversation.peer.id)?.photo_100
-            }
-          />
+          <AvatarImage src={getAvatar(conversation)} />
           <AvatarFallback>{chatTitle?.substring(0, 2)}</AvatarFallback>
         </Avatar>
 
@@ -64,7 +40,7 @@ export const ChatHeader = ({
           <div className="flex items-center">
             <h2 className="text-sm font-medium">{chatTitle}</h2>
             <Badge className="ml-2 bg-[#2a2a3a] text-gray-400 p-1 h-5 text-xs">
-              {membersCount} members
+              {membersCount} участников
             </Badge>
           </div>
           <p className="text-xs text-gray-400">12:35 PM</p>
