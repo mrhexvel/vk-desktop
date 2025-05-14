@@ -92,6 +92,50 @@ const ChatListItem = memo(
       return sender?.firstName || sender?.groupName || `id${fromId}`;
     }, [conversation.last_message.from_id, messageSenders]);
 
+    const getAvatarJsx = () => {
+      if (isMyConversation) {
+        return (
+          <div className="w-10 h-10 rounded-full mr-3 flex items-center justify-center bg-purple-400">
+            <NotepadText />
+          </div>
+        );
+      }
+      return (
+        <img
+          src={chatImage}
+          alt={chatTitle}
+          className="w-10 h-10 rounded-full mr-3"
+          loading="lazy"
+        />
+      );
+    };
+
+    const getTitle = () => (isMyConversation ? "Избранные" : chatTitle);
+
+    const getLastMessage = () => {
+      const messageText = cropText(chatLastMessage, 10);
+      const messageClass = isAttachment ? "text-purple-400" : "";
+
+      if (isAction) {
+        return (
+          <span className="text-green-400">
+            <span className="text-purple-400">{senderName}</span>:{" "}
+            {chatLastMessage}
+          </span>
+        );
+      }
+
+      if (isPrivateChat) {
+        return <span className={messageClass}>{messageText}</span>;
+      }
+
+      return (
+        <>
+          {senderName}: <span className={messageClass}>{messageText}</span>
+        </>
+      );
+    };
+
     const isMyConversation = conversation.conversation.peer.id === data?.id;
 
     return (
@@ -103,45 +147,10 @@ const ChatListItem = memo(
         )}
       >
         <div className="p-2 flex items-center">
-          {isMyConversation ? (
-            <div className="w-10 h-10 rounded-full mr-3 flex items-center justify-center bg-purple-400">
-              <NotepadText />
-            </div>
-          ) : (
-            <img
-              src={chatImage}
-              alt={chatTitle}
-              className="w-10 h-10 rounded-full mr-3"
-              loading="lazy"
-            />
-          )}
+          {getAvatarJsx()}
           <div>
-            <h3 className="text-sm font-medium">
-              {isMyConversation ? <p>Избранные</p> : chatTitle}
-            </h3>
-            <p className="text-xs text-gray-400">
-              {isAction ? (
-                <span className="text-green-400">
-                  <span className="text-purple-400">{senderName}</span>:{" "}
-                  {chatLastMessage}
-                </span>
-              ) : (
-                <>
-                  {isPrivateChat ? (
-                    <span className={cn(isAttachment && "text-purple-400")}>
-                      {cropText(chatLastMessage, 15)}
-                    </span>
-                  ) : (
-                    <>
-                      {senderName}:{" "}
-                      <span className={cn(isAttachment && "text-purple-400")}>
-                        {cropText(chatLastMessage, 15)}
-                      </span>
-                    </>
-                  )}
-                </>
-              )}
-            </p>
+            <h3 className="text-sm font-medium">{getTitle()}</h3>
+            <p className="text-xs text-gray-400">{getLastMessage()}</p>
           </div>
         </div>
         {conversation.conversation.unread_count && (
