@@ -1,8 +1,9 @@
-import axios from "axios";
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow } from "electron";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import "./ipc";
 
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -55,126 +56,6 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-ipcMain.handle("vk:getConversations", async (event, accessToken: string) => {
-  try {
-    const response = await axios.get(
-      `${VK_API_URL}/messages.getConversations`,
-      {
-        params: {
-          access_token: accessToken,
-          v: "5.131",
-          extended: 1,
-          fields: "photo_100",
-        },
-      }
-    );
-
-    if (response.data.error) {
-      throw new Error(response.data.error.error_msg);
-    }
-
-    return response.data.response;
-  } catch (error) {
-    console.error("Error fetching conversations:", error);
-    throw error;
-  }
-});
-
-ipcMain.handle(
-  "vk:execute",
-  async (event, accessToken: string, code: string) => {
-    try {
-      const response = await axios.get(`${VK_API_URL}/execute`, {
-        params: { access_token: accessToken, v: "5.131", code },
-      });
-
-      if (response.data.error) {
-        throw new Error(response.data.error.error_msg);
-      }
-
-      return response.data.response;
-    } catch (error) {
-      console.error("Error execute request:", error);
-      throw error;
-    }
-  }
-);
-
-ipcMain.handle(
-  "vk:users.get",
-  async (event, accessToken: string, user_ids?: string) => {
-    try {
-      const response = await axios.get(`${VK_API_URL}/users.get`, {
-        params: {
-          access_token: accessToken,
-          v: "5.131",
-          user_ids,
-          fields: "photo_100,online,sex,screen_name,online_info",
-        },
-      });
-
-      if (response.data.error) {
-        throw new Error(response.data.error.error_msg);
-      }
-
-      return response.data.response;
-    } catch (error) {
-      console.error("Error execute request:", error);
-      throw error;
-    }
-  }
-);
-
-ipcMain.handle(
-  "vk:messages.getHistory",
-  async (event, accessToken: string, peer_id: number) => {
-    try {
-      const response = await axios.get(`${VK_API_URL}/messages.getHistory`, {
-        params: {
-          access_token: accessToken,
-          v: "5.131",
-          peer_id,
-          count: 20,
-        },
-      });
-
-      if (response.data.error) {
-        throw new Error(response.data.error.error_msg);
-      }
-
-      return response.data.response;
-    } catch (error) {
-      console.error("Error execute request:", error);
-      throw error;
-    }
-  }
-);
-
-ipcMain.handle(
-  "vk:groups.getById",
-  async (event, accessToken: string, group_id: number) => {
-    try {
-      const response = await axios.get(`${VK_API_URL}/groups.getById`, {
-        params: {
-          access_token: accessToken,
-          v: "5.131",
-          group_id,
-          fields: "name",
-        },
-      });
-
-      if (response.data.error) {
-        throw new Error(response.data.error.error_msg);
-      }
-
-      return response.data.response;
-    } catch (error) {
-      console.error("Error execute request:", error);
-      throw error;
-    }
-  }
-);
 
 app.whenReady().then(() => {
   createWindow();
