@@ -1,10 +1,13 @@
+"use client";
+
+import type React from "react";
+
 import { cn } from "@/lib/utils";
 import { VKApiService, vkService } from "@/services/vk.service";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import { useMessageHistory } from "@/store/useMessageHistory";
 import { useUserStore } from "@/store/userStore";
-import { VKConversationItem, VKProfile } from "@/types/vk.type";
-import { debounce } from "lodash";
+import type { VKConversationItem, VKProfile } from "@/types/vk.type";
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageBubble } from "./chat/MessageBubble";
@@ -25,6 +28,8 @@ export const ModernMessenger = () => {
   const fetchHistory = useMessageHistory((state) => state.fetchHistory);
   const clearHistory = useMessageHistory((state) => state.clearHistory);
   const messages = useMessageHistory((state) => state.history);
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false);
+  const isHistoryLoading = useMessageHistory((state) => state.isLoading);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -32,37 +37,31 @@ export const ModernMessenger = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const debouncedFetchHistory = useMemo(
-    () =>
-      debounce((peerId: number) => {
-        fetchHistory(peerId);
-      }, 300),
-    [fetchHistory]
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedFetchHistory.cancel();
-    };
-  }, [debouncedFetchHistory]);
-
   useEffect(() => {
     if (activeConversation) {
       const peerId = activeConversation.conversation.peer.id;
       clearHistory();
-      debouncedFetchHistory(peerId);
+      setIsMessagesLoading(true);
+      fetchHistory(peerId);
     }
     scrollToBottom();
-  }, [activeConversation, debouncedFetchHistory, clearHistory]);
+  }, [activeConversation, fetchHistory, clearHistory]);
 
   useEffect(() => {
-    if (messages?.items) {
+    if (!isHistoryLoading && messages) {
+      setIsMessagesLoading(false);
+    }
+  }, [isHistoryLoading, messages]);
+
+  useEffect(() => {
+    if (messages?.items && messages.items.length > 0) {
       const participantIds = [
         ...new Set(messages.items.map((msg) => msg.from_id)),
       ];
-      console.log(messages.items);
       const userIds = participantIds.filter((id) => id > 0);
-      const groupIds = participantIds.filter((id) => id < 0).map((id) => +id);
+      const groupIds = participantIds
+        .filter((id) => id < 0)
+        .map((id) => Math.abs(id));
 
       const currentProfiles = useUserStore.getState().profiles;
       const missingUserIds = userIds.filter((id) => !currentProfiles[id]);
@@ -70,14 +69,14 @@ export const ModernMessenger = () => {
 
       if (missingUserIds.length > 0 || missingGroupIds.length > 0) {
         const executeCode = `
-          var users = API.users.get({"user_ids": "${missingUserIds.join(
-            ","
-          )}", "fields": "photo_100"});
-          var groups = API.groups.getById({"group_ids": "${missingGroupIds.join(
-            ","
-          )}", "fields": "photo_100"});
-          return {"users": users, "groups": groups};
-        `;
+        var users = API.users.get({"user_ids": "${missingUserIds.join(
+          ","
+        )}", "fields": "photo_100"});
+        var groups = API.groups.getById({"group_ids": "${missingGroupIds.join(
+          ","
+        )}", "fields": "photo_100"});
+        return {"users": users, "groups": groups};
+      `;
 
         vkService
           .execute(executeCode)
@@ -140,6 +139,8 @@ export const ModernMessenger = () => {
     }
   };
 
+  const isLoading = messages?.items.length === 0 || !messages?.items;
+
   return (
     <div className="flex h-screen bg-[#121218] text-white">
       <div className="w-full flex">
@@ -172,10 +173,12 @@ export const ModernMessenger = () => {
 
               <ScrollArea className="flex-1 h-72 p-4">
                 <div className="flex flex-col gap-4 max-w-3xl mx-auto">
-                  {messages?.items.length === 0 ? (
-                    <p>Загрузка...</p>
-                  ) : !messages ? (
-                    <p>Дададад</p>
+                  {isMessagesLoading ? (
+                    <div className="flex justify-center items-center h-32">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                    </div>
+                  ) : isLoading ? (
+                    <p className="text-center text-gray-400">Нет сообщений</p>
                   ) : (
                     [...messages.items].reverse().map((message) => {
                       return (

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/userStore";
-import { VKMessage, VKProfile } from "@/types/vk.type";
+import type { VKMessage, VKProfile } from "@/types/vk.type";
 import { parseTextWithLinks } from "@/utils/vk.util";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
@@ -12,14 +12,21 @@ export const MessageBubble = ({
 }: VKMessage & {
   profile?: VKProfile;
 }) => {
-  console.log(attachments);
   const data = useUserStore((state) => state.user);
   const isCurrentUser = from_id === data?.id;
   const sticker = attachments?.find((att) => att.type === "sticker")?.sticker;
   const stickerUrl = sticker?.images[1]?.url;
 
   if (!profile) {
-    return <p>Загрузка</p>;
+    return (
+      <div className="flex gap-3 max-w-[80%] self-start">
+        <div className="h-8 w-8 mt-1 rounded-full bg-[#2a2a3a] animate-pulse"></div>
+        <div className="flex flex-col items-start">
+          <div className="h-4 w-24 bg-[#2a2a3a] rounded-md animate-pulse mb-1"></div>
+          <div className="h-8 w-48 bg-[#2a2a3a] rounded-2xl animate-pulse"></div>
+        </div>
+      </div>
+    );
   }
 
   const displayName = profile.isGroup
@@ -70,7 +77,7 @@ export const MessageBubble = ({
           )}
           {stickerUrl && (
             <img
-              src={stickerUrl}
+              src={stickerUrl || "/placeholder.svg"}
               alt="Sticker"
               className="max-w-[128px] h-auto"
             />
