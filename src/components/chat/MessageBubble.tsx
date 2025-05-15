@@ -38,8 +38,10 @@ export const MessageBubble = ({
   }
 
   const displayName = profile.isGroup
-    ? profile.name
-    : `${profile.first_name} ${profile.last_name || ""}`.trim();
+    ? `[id${+profile.id}|${profile.name}]`
+    : `[id${+profile.id}|${profile.first_name} ${
+        profile.last_name || ""
+      }]`.trim();
 
   return (
     <div
@@ -60,10 +62,12 @@ export const MessageBubble = ({
         </Avatar>
       )}
 
-      <div className={cn("flex flex-col")}>
+      <div className={cn("flex flex-col items-start")}>
         {!isCurrentUser && (
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium">{displayName}</span>
+            <span className="text-sm font-medium !text-white">
+              {parseTextWithLinks(displayName)}
+            </span>
             <span className="text-xs text-gray-400">02:36</span>
             {profile.id === 715616525 && !profile.isGroup && (
               <span className="text-xs text-gray-400">Разработчик</span>

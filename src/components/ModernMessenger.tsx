@@ -44,7 +44,7 @@ export const ModernMessenger = () => {
       clearHistory();
       setIsMessagesLoading(true);
       fetchHistory(peerId);
-      setReplyToMessage(null); // Сбрасываем ответ при смене чата
+      setReplyToMessage(null);
     }
     scrollToBottom();
   }, [activeConversation, fetchHistory, clearHistory]);
@@ -61,7 +61,6 @@ export const ModernMessenger = () => {
         ...new Set(messages.items.map((msg) => msg.from_id)),
       ];
 
-      // Добавляем ID пользователей из reply_message
       const replyIds = messages.items
         .filter((msg) => msg.reply_message)
         .map((msg) => msg.reply_message!.from_id);
@@ -151,7 +150,6 @@ export const ModernMessenger = () => {
     }
   };
 
-  // Находим сообщение, на которое отвечаем
   const replyMessageInfo = useMemo(() => {
     if (!replyToMessage || !messages?.items) return null;
 
