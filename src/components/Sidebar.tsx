@@ -1,15 +1,13 @@
-import { UserData, VKConversationItem } from "@/types/vk.type";
+import { VKConversationItem } from "@/types/vk.type";
 import { getMessageSendersInfo } from "@/utils/vk.util";
 import { MoreVertical, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import ChatList from "./ChatList";
-import { StoryCircle } from "./StoryCircle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
-  activeMembers: UserData[];
   conversations: VKConversationItem[] | undefined;
   activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
@@ -17,7 +15,6 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({
-  activeMembers,
   conversations,
   activeId,
   onSelect,
@@ -81,7 +78,8 @@ export const Sidebar = ({
         </div>
       </div>
 
-      <div className="px-4 py-2">
+      {/* TODO: сториы */}
+      {/* <div className="px-4 py-2">
         <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
           {activeMembers.map((member, index) => (
             <StoryCircle
@@ -92,7 +90,7 @@ export const Sidebar = ({
             />
           ))}
         </div>
-      </div>
+      </div> */}
 
       <ScrollArea className="flex-1">
         <ChatList

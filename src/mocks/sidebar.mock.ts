@@ -1,77 +1,103 @@
-import { VKConversationItem } from "@/types/vk.type";
+import { VKMessage } from "@/types/vk.type";
 
-export const mockVkApiData = {
-  response: {
-    count: 10,
-    items: [
+export const mockMessages: VKMessage[] = [
+  {
+    id: 1,
+    date: 1629456789,
+    from_id: 901234,
+    text: "",
+    attachments: [
       {
-        conversation: {
-          peer: {
-            id: 1,
-            type: "chat",
-            local_id: 1,
-          },
-          chat_settings: {
-            title: "[HEXVEL] | OFFTOP 2.0",
-            owner_id: 123456,
-            members_count: 14,
-            state: "in",
-            photo: {
-              photo_50: "/group-designers.png",
-              photo_100: "/group-designers.png",
-              photo_200: "/group-designers.png",
-            },
-            active_ids: [123456, 234567, 345678, 456789, 567890],
-          },
-          last_message_id: 1,
-          in_read: 1,
-          out_read: 1,
-          unread_count: 0,
-          is_marked_unread: false,
-          pinned_message: {
-            id: 123,
-            text: "сап",
-            from_id: 123456,
-          },
-        },
-        last_message: {
-          id: 1,
-          date: 1629456789,
-          from_id: 123456,
-          text: "да",
-          attachments: [],
-          conversation_message_id: 1,
-          peer_id: 1,
-        },
-      },
-    ] as VKConversationItem[],
-    profiles: [
-      {
-        id: 123456,
-        first_name: "Лоа",
-        last_name: "Лоа",
-        photo_50: "/mike-brown.png",
-        photo_100: "/avatar.jpg",
-        online: 1,
-        screen_name: "mike",
-        sex: 2,
-        online_info: {
-          visible: true,
-          last_seen: 1629456789,
-          is_online: true,
-          app_id: 0,
+        type: "audio_message",
+        audio_message: {
+          duration: 12,
+          waveform: [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7,
+            8, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+          ],
+          link_mp3: "https://example.com/audio.mp3",
+          transcript: "",
         },
       },
     ],
-    groups: [
-      {
-        id: 1,
-        name: "Дизайнеы",
-        screen_name: "designers",
-        photo_50: "/group-designers.png",
-        photo_100: "/group-designers.png",
-        photo_200: "/group-designers.png",
-      },
-    ],
+    conversation_message_id: 1,
+    peer_id: 1,
   },
-};
+  {
+    id: 2,
+    date: 1629456790,
+    from_id: 234567,
+    text: "guys, new version of streaming platform app design is ready, what do you think? 🤔",
+    attachments: [
+      {
+        type: "photo",
+        photo: {
+          id: 1,
+          album_id: 1,
+          owner_id: 234567,
+          sizes: [
+            {
+              type: "s",
+              url: "/app-design.png",
+              width: 75,
+              height: 75,
+            },
+            {
+              type: "m",
+              url: "/app-design.png",
+              width: 130,
+              height: 130,
+            },
+            {
+              type: "x",
+              url: "/app-design.png",
+              width: 604,
+              height: 604,
+            },
+            {
+              type: "y",
+              url: "/app-design.png",
+              width: 807,
+              height: 807,
+            },
+            {
+              type: "z",
+              url: "/app-design.png",
+              width: 1080,
+              height: 1080,
+            },
+            {
+              type: "w",
+              url: "/app-design.png",
+              width: 2560,
+              height: 2560,
+            },
+          ],
+          text: "",
+          date: 1629456790,
+          access_key: "access_key",
+        },
+      },
+    ],
+    conversation_message_id: 2,
+    peer_id: 1,
+  },
+  {
+    id: 3,
+    date: 1629456791,
+    from_id: 890123,
+    text: "I like it, the colors look so much better in this version! 👍 👍",
+    attachments: [],
+    conversation_message_id: 3,
+    peer_id: 1,
+  },
+  {
+    id: 4,
+    date: 1629456792,
+    from_id: 123456,
+    text: "10/10, it looks awesome! 😍",
+    attachments: [],
+    conversation_message_id: 4,
+    peer_id: 1,
+  },
+];

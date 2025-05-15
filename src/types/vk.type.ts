@@ -131,6 +131,11 @@ export interface VKMessage {
   peer_id: number;
 }
 
+export interface VKMessageHistory {
+  count: number;
+  items: VKMessage[];
+}
+
 export interface VKConversationItem {
   conversation: VKConversation;
   last_message: VKMessage;

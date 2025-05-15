@@ -22,7 +22,7 @@ let win: BrowserWindow | null;
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: path.join(process.env.VITE_PUBLIC, "vk-logo.svg"),
     height: 900,
     width: 1300,
     webPreferences: {
@@ -111,6 +111,31 @@ ipcMain.handle(
           v: "5.131",
           user_ids,
           fields: "photo_100,online,sex,screen_name,online_info",
+        },
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+
+      return response.data.response;
+    } catch (error) {
+      console.error("Error execute request:", error);
+      throw error;
+    }
+  }
+);
+
+ipcMain.handle(
+  "vk:messages.getHistory",
+  async (event, accessToken: string, peer_id: number) => {
+    try {
+      const response = await axios.get(`${VK_API_URL}/messages.getHistory`, {
+        params: {
+          access_token: accessToken,
+          v: "5.131",
+          peer_id,
+          count: 20,
         },
       });
 

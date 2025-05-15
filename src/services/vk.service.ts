@@ -3,6 +3,7 @@ import {
   VKConversationItem,
   VKGetConversationsResponse,
   VKGroup,
+  VKMessageHistory,
   VKProfile,
 } from "@/types/vk.type";
 
@@ -56,6 +57,16 @@ export class VKApiService {
     }
   }
 
+  async getHistory(peer_id: number): Promise<VKMessageHistory> {
+    try {
+      const response = await window.vkApi.getHistory(this.accessToken, peer_id);
+      return response;
+    } catch (error) {
+      console.error("Error execute:", error);
+      throw error;
+    }
+  }
+
   static getConversationAvatar(
     conversation: VKConversationItem,
     profiles: VKProfile[],
@@ -93,6 +104,11 @@ declare global {
         accessToken: string,
         group_id: number
       ) => Promise<VKGroup>;
+
+      getHistory: (
+        accessToken: string,
+        peer_id: number
+      ) => Promise<VKMessageHistory>;
     };
   }
 }

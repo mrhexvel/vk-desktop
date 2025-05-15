@@ -11658,14 +11658,7 @@ var _eval = EvalError;
 var range = RangeError;
 var ref = ReferenceError;
 var syntax = SyntaxError;
-var type;
-var hasRequiredType;
-function requireType() {
-  if (hasRequiredType) return type;
-  hasRequiredType = 1;
-  type = TypeError;
-  return type;
-}
+var type = TypeError;
 var uri = URIError;
 var abs$1 = Math.abs;
 var floor$1 = Math.floor;
@@ -11925,7 +11918,7 @@ function requireCallBindApplyHelpers() {
   if (hasRequiredCallBindApplyHelpers) return callBindApplyHelpers;
   hasRequiredCallBindApplyHelpers = 1;
   var bind2 = requireFunctionBind();
-  var $TypeError2 = requireType();
+  var $TypeError2 = type;
   var $call2 = requireFunctionCall();
   var $actualApply = requireActualApply();
   callBindApplyHelpers = function callBindBasic(args) {
@@ -12005,7 +11998,7 @@ var $EvalError = _eval;
 var $RangeError = range;
 var $ReferenceError = ref;
 var $SyntaxError = syntax;
-var $TypeError$1 = requireType();
+var $TypeError$1 = type;
 var $URIError = uri;
 var abs = abs$1;
 var floor = floor$1;
@@ -12336,7 +12329,7 @@ var GetIntrinsic2 = getIntrinsic;
 var $defineProperty = GetIntrinsic2("%Object.defineProperty%", true);
 var hasToStringTag = requireShams()();
 var hasOwn = requireHasown();
-var $TypeError = requireType();
+var $TypeError = type;
 var toStringTag = hasToStringTag ? Symbol.toStringTag : null;
 var esSetTostringtag = function setToStringTag(object, value) {
   var overrideIfSet = arguments.length > 2 && !!arguments[2] && arguments[2].force;
@@ -16741,7 +16734,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process.env.APP_ROOT
 let win;
 function createWindow() {
   win = new BrowserWindow({
-    icon: path$1.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: path$1.join(process.env.VITE_PUBLIC, "vk-logo.svg"),
     height: 900,
     width: 1300,
     webPreferences: {
@@ -16819,6 +16812,28 @@ ipcMain.handle(
           v: "5.131",
           user_ids,
           fields: "photo_100,online,sex,screen_name,online_info"
+        }
+      });
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+      return response.data.response;
+    } catch (error) {
+      console.error("Error execute request:", error);
+      throw error;
+    }
+  }
+);
+ipcMain.handle(
+  "vk:messages.getHistory",
+  async (event, accessToken, peer_id) => {
+    try {
+      const response = await axios.get(`${VK_API_URL}/messages.getHistory`, {
+        params: {
+          access_token: accessToken,
+          v: "5.131",
+          peer_id,
+          count: 20
         }
       });
       if (response.data.error) {

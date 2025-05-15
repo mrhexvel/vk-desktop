@@ -12,4 +12,7 @@ contextBridge.exposeInMainWorld("vkApi", {
 
   groupsGetById: (accessToken: string, group_id: number) =>
     ipcRenderer.invoke("vk:groups.getById", accessToken, group_id),
+
+  getHistory: (accessToken: string, peer_id: number) =>
+    ipcRenderer.invoke("vk:messages.getHistory", accessToken, peer_id),
 });

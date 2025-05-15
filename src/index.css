@@ -113,6 +113,21 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.gradient-bg {
+  background-image: linear-gradient(
+      to bottom,
+      rgba(147, 112, 319, 0.3),
+      rgba(147, 112, 219, 0.3),
+      rgba(147, 112, 170, 0.3)
+    ),
+    url("/message-bubble-background.svg");
+  background-size: 40%;
+  background-repeat: repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

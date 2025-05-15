@@ -18,8 +18,6 @@ export default function ChatList({
   getAvatar,
   messageSenders,
 }: ChatListProps) {
-  console.log(conversations);
-
   return (
     <ScrollArea className="h-72 rounded-md">
       <div className="pb-1">

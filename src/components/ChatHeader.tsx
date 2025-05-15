@@ -33,7 +33,7 @@ export const ChatHeader = ({
   const isMyConversation = conversation.conversation.peer.id === data?.id;
 
   return (
-    <div className="h-16 flex items-center px-4 border-b border-[#2a2a3a]">
+    <div className="bg-[#121218] h-16 flex items-center px-4 border-b border-[#2a2a3a]">
       <div className="flex items-center">
         {isMyConversation ? (
           <div className="w-8 h-8 rounded-full mr-3 flex items-center justify-center bg-purple-400">
