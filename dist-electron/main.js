@@ -16829,7 +16829,6 @@ process.env.APP_ROOT = path$1.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path$1.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path$1.join(process.env.APP_ROOT, "dist");
-const VK_API_URL = "https://api.vk.com/method";
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
 function createWindow() {
@@ -16869,6 +16868,5 @@ app.whenReady().then(() => {
 export {
   MAIN_DIST,
   RENDERER_DIST,
-  VITE_DEV_SERVER_URL,
-  VK_API_URL
+  VITE_DEV_SERVER_URL
 };

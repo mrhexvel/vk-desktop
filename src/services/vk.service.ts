@@ -114,4 +114,4 @@ declare global {
 }
 
 // да, я долбаёб, но об этом никому 🤫
-export const vkService = new VKApiService("");
+export const vkService = new VKApiService(import.meta.env.VITE_ACCESS_TOKEN);
