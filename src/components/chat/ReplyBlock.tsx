@@ -1,10 +1,10 @@
 import { cropText } from "@/lib/utils";
 import { useUserStore } from "@/store/userStore";
-import type { VKAttachment, VKMessage, VKProfile } from "@/types/vk.type";
+import type { VKAttachment, VKProfile, VKReplyMessage } from "@/types/vk.type";
 import { parseTextWithLinks } from "@/utils/vk.util";
 
 interface ReplyBlockProps {
-  message: VKMessage;
+  message: VKReplyMessage;
   profile?: VKProfile;
 }
 

@@ -57,7 +57,7 @@ export const getMessageSendersInfo = async (fromIds: number[]) => {
   return response;
 };
 
-export const parseTextWithLinks = (text: string) => {
+export const parseTextWithLinks = (text: string, onlyFirstName?: boolean) => {
   const linkRegex = /\[(id\d+|\{[^}]+})\|([^[\]]*)\]/g;
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
@@ -82,7 +82,7 @@ export const parseTextWithLinks = (text: string) => {
         rel="noopener noreferrer"
         className="text-purple-400 hover:underline"
       >
-        {displayText}
+        {onlyFirstName ? displayText.split(" ")[0] : displayText}
       </a>
     );
 

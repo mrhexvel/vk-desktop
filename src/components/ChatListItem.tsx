@@ -113,7 +113,7 @@ const ChatListItem = memo(
     const getTitle = () => (isMyConversation ? "Избранные" : chatTitle);
 
     const getLastMessage = () => {
-      const messageText = cropText(chatLastMessage, 10);
+      const messageText = cropText(chatLastMessage, 14);
       const messageClass = isAttachment ? "text-purple-400" : "";
 
       if (isAction) {
@@ -142,7 +142,7 @@ const ChatListItem = memo(
       <div
         onClick={() => onSelect(conversation)}
         className={cn(
-          "m-3 cursor-pointer hover:bg-purple-400/10 rounded-xl transition-colors flex items-center justify-between",
+          "m-2 min-h-[65px] cursor-pointer hover:bg-purple-400/10 rounded-xl transition-colors flex items-center justify-between",
           activeId === conversation.conversation.peer.id && "bg-purple-900/20"
         )}
       >

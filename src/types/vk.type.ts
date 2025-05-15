@@ -109,8 +109,56 @@ export interface VKWallMessageAttachment {
     access_key?: string;
     date: number;
     id: number;
+    owner_id: number;
+    from_id?: number;
     type: string;
     text?: string;
+    attachments?: VKAttachment[];
+  };
+}
+
+export interface VKDocumentAttachment {
+  type: "doc";
+  doc: {
+    id: number;
+    owner_id: number;
+    title: string;
+    size: number;
+    ext: string;
+    url: string;
+    date: number;
+    type: number;
+    preview?: {
+      photo?: {
+        sizes: VKPhotoSize[];
+      };
+    };
+  };
+}
+
+export interface VKLinkAttachment {
+  type: "link";
+  link: {
+    url: string;
+    title: string;
+    description?: string;
+    photo?: {
+      sizes: VKPhotoSize[];
+    };
+  };
+}
+
+export interface VKVideoAttachment {
+  type: "video";
+  video: {
+    id: number;
+    owner_id: number;
+    title: string;
+    duration: number;
+    image?: VKPhotoSize[];
+    first_frame?: VKPhotoSize[];
+    date: number;
+    access_key?: string;
   };
 }
 
@@ -118,10 +166,31 @@ export type VKAttachment =
   | VKPhotoAttachment
   | VKAudioMessageAttachment
   | VKStickerMessageAttachment
-  | VKWallMessageAttachment;
+  | VKWallMessageAttachment
+  | VKDocumentAttachment
+  | VKLinkAttachment
+  | VKVideoAttachment;
 
 export interface VKAction {
   type: string;
+  member_id?: number;
+  text?: string;
+  email?: string;
+  photo?: {
+    photo_50: string;
+    photo_100: string;
+    photo_200: string;
+  };
+}
+
+export interface VKReplyMessage {
+  id: number;
+  date: number;
+  from_id: number;
+  text: string;
+  attachments?: VKAttachment[];
+  conversation_message_id: number;
+  peer_id: number;
 }
 
 export interface VKMessage {
@@ -130,10 +199,11 @@ export interface VKMessage {
   from_id: number;
   text: string;
   attachments: VKAttachment[];
-  action: VKAction;
+  action?: VKAction;
   conversation_message_id: number;
   peer_id: number;
-  reply_message: VKMessage;
+  reply_message?: VKReplyMessage;
+  fwd_messages?: VKMessage[];
 }
 
 export interface VKMessageHistory {

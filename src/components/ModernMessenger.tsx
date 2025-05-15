@@ -57,18 +57,31 @@ export const ModernMessenger = () => {
 
   useEffect(() => {
     if (messages?.items && messages.items.length > 0) {
-      const participantIds = [
-        ...new Set(messages.items.map((msg) => msg.from_id)),
-      ];
+      const collectUserIds = (items: typeof messages.items): number[] => {
+        let ids: number[] = [];
 
-      const replyIds = messages.items
-        .filter((msg) => msg.reply_message)
-        .map((msg) => msg.reply_message!.from_id);
+        items.forEach((msg) => {
+          ids.push(msg.from_id);
 
-      const allIds = [...new Set([...participantIds, ...replyIds])];
+          if (msg.reply_message) {
+            ids.push(msg.reply_message.from_id);
+          }
 
-      const userIds = allIds.filter((id) => id > 0);
-      const groupIds = allIds.filter((id) => id < 0).map((id) => Math.abs(id));
+          if (msg.fwd_messages && msg.fwd_messages.length > 0) {
+            ids = [...ids, ...collectUserIds(msg.fwd_messages)];
+          }
+        });
+
+        return ids;
+      };
+
+      const allUserIds = collectUserIds(messages.items);
+      const uniqueUserIds = [...new Set(allUserIds)];
+
+      const userIds = uniqueUserIds.filter((id) => id > 0);
+      const groupIds = uniqueUserIds
+        .filter((id) => id < 0)
+        .map((id) => Math.abs(id));
 
       const currentProfiles = useUserStore.getState().profiles;
       const missingUserIds = userIds.filter((id) => !currentProfiles[id]);
@@ -119,18 +132,19 @@ export const ModernMessenger = () => {
 
   const profileMap = useMemo(() => {
     const map: Record<number, VKProfile> = {};
-    if (messages?.items) {
-      messages.items.forEach((msg) => {
-        const profile =
-          profiles?.find((p) => p.id === msg.from_id) ||
-          useUserStore.getState().profiles[msg.from_id];
-        if (profile) {
-          map[msg.from_id] = profile;
-        }
+    if (profiles) {
+      profiles.forEach((profile) => {
+        map[profile.id] = profile;
       });
     }
+
+    const userProfiles = useUserStore.getState().profiles;
+    Object.keys(userProfiles).forEach((id) => {
+      map[Number(id)] = userProfiles[Number(id)];
+    });
+
     return map;
-  }, [messages, profiles]);
+  }, [profiles]);
 
   const handleSendMessage = (): void => {
     if (messageText.trim()) {
@@ -209,7 +223,9 @@ export const ModernMessenger = () => {
                       .reverse()
                       .map((message) => (
                         <MessageBubble
+                          key={message.id}
                           {...message}
+                          profileMap={profileMap}
                           profile={profileMap[message.from_id]}
                         />
                       ))
