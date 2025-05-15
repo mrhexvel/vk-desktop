@@ -96,6 +96,7 @@ export interface VKStickerMessageAttachment {
   type: "sticker";
   sticker: {
     images: { url: string }[];
+    images_with_background: { url: string }[];
     animation_url?: string;
     sticker_id: number;
     product_id: number;
@@ -132,6 +133,7 @@ export interface VKMessage {
   action: VKAction;
   conversation_message_id: number;
   peer_id: number;
+  reply_message: VKMessage;
 }
 
 export interface VKMessageHistory {

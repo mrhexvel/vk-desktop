@@ -8,7 +8,7 @@ import { useConversationsStore } from "@/store/useConversationsStore";
 import { useMessageHistory } from "@/store/useMessageHistory";
 import { useUserStore } from "@/store/userStore";
 import type { VKConversationItem, VKProfile } from "@/types/vk.type";
-import { Mic, Paperclip, Send, Smile } from "lucide-react";
+import { Mic, Paperclip, Reply, Send, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageBubble } from "./chat/MessageBubble";
 import { ChatHeader } from "./ChatHeader";
@@ -30,6 +30,7 @@ export const ModernMessenger = () => {
   const messages = useMessageHistory((state) => state.history);
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const isHistoryLoading = useMessageHistory((state) => state.isLoading);
+  const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,7 @@ export const ModernMessenger = () => {
       clearHistory();
       setIsMessagesLoading(true);
       fetchHistory(peerId);
+      setReplyToMessage(null); // Сбрасываем ответ при смене чата
     }
     scrollToBottom();
   }, [activeConversation, fetchHistory, clearHistory]);
@@ -58,10 +60,16 @@ export const ModernMessenger = () => {
       const participantIds = [
         ...new Set(messages.items.map((msg) => msg.from_id)),
       ];
-      const userIds = participantIds.filter((id) => id > 0);
-      const groupIds = participantIds
-        .filter((id) => id < 0)
-        .map((id) => Math.abs(id));
+
+      // Добавляем ID пользователей из reply_message
+      const replyIds = messages.items
+        .filter((msg) => msg.reply_message)
+        .map((msg) => msg.reply_message!.from_id);
+
+      const allIds = [...new Set([...participantIds, ...replyIds])];
+
+      const userIds = allIds.filter((id) => id > 0);
+      const groupIds = allIds.filter((id) => id < 0).map((id) => Math.abs(id));
 
       const currentProfiles = useUserStore.getState().profiles;
       const missingUserIds = userIds.filter((id) => !currentProfiles[id]);
@@ -128,7 +136,11 @@ export const ModernMessenger = () => {
   const handleSendMessage = (): void => {
     if (messageText.trim()) {
       console.log("отправлено сообщение:", messageText);
+      if (replyToMessage) {
+        console.log("в ответ на сообщение ID:", replyToMessage);
+      }
       setMessageText("");
+      setReplyToMessage(null);
     }
   };
 
@@ -139,7 +151,22 @@ export const ModernMessenger = () => {
     }
   };
 
-  const isLoading = messages?.items.length === 0 || !messages?.items;
+  // Находим сообщение, на которое отвечаем
+  const replyMessageInfo = useMemo(() => {
+    if (!replyToMessage || !messages?.items) return null;
+
+    const message = messages.items.find((msg) => msg.id === replyToMessage);
+    if (!message) return null;
+
+    const profile = profileMap[message.from_id];
+    return { message, profile };
+  }, [replyToMessage, messages, profileMap]);
+
+  const cropText = (text: string, maxLength: number): string => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   return (
     <div className="flex h-screen bg-[#121218] text-white">
@@ -177,18 +204,17 @@ export const ModernMessenger = () => {
                     <div className="flex justify-center items-center h-32">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                     </div>
-                  ) : isLoading ? (
+                  ) : messages?.items.length === 0 || !messages?.items ? (
                     <p className="text-center text-gray-400">Нет сообщений</p>
                   ) : (
-                    [...messages.items].reverse().map((message) => {
-                      return (
+                    [...messages.items]
+                      .reverse()
+                      .map((message) => (
                         <MessageBubble
                           {...message}
-                          key={message.id}
                           profile={profileMap[message.from_id]}
                         />
-                      );
-                    })
+                      ))
                   )}
 
                   <div ref={messagesEndRef} />
@@ -196,6 +222,39 @@ export const ModernMessenger = () => {
               </ScrollArea>
 
               <div className="p-3">
+                {replyMessageInfo && (
+                  <div className="mx-3 mb-2 p-2 bg-[#2a2a3a] rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Reply className="h-4 w-4 text-[#5d3f92]" />
+                      <div>
+                        <div className="text-xs font-medium text-[#5d3f92]">
+                          {replyMessageInfo.profile
+                            ? replyMessageInfo.profile.isGroup
+                              ? replyMessageInfo.profile.name
+                              : `${replyMessageInfo.profile.first_name} ${
+                                  replyMessageInfo.profile.last_name || ""
+                                }`.trim()
+                            : `id${replyMessageInfo.message.from_id}`}
+                        </div>
+                        <div className="text-xs text-gray-300 truncate">
+                          {cropText(
+                            replyMessageInfo.message.text || "Вложение",
+                            50
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 rounded-full hover:bg-[#3a3a4a]"
+                      onClick={() => setReplyToMessage(null)}
+                    >
+                      <span className="text-xs">✕</span>
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 bg-[#2a2a3a] rounded-full p-1 pl-3">
                   <Input
                     value={messageText}

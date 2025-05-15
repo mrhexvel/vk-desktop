@@ -3,19 +3,27 @@ import { useUserStore } from "@/store/userStore";
 import type { VKMessage, VKProfile } from "@/types/vk.type";
 import { parseTextWithLinks } from "@/utils/vk.util";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { ReplyBlock } from "./ReplyBlock";
 
 export const MessageBubble = ({
   from_id,
   text,
   attachments,
   profile,
+  reply_message,
 }: VKMessage & {
   profile?: VKProfile;
 }) => {
   const data = useUserStore((state) => state.user);
   const isCurrentUser = from_id === data?.id;
   const sticker = attachments?.find((att) => att.type === "sticker")?.sticker;
-  const stickerUrl = sticker?.images[1]?.url;
+  console.log(sticker);
+  const stickerUrl = sticker?.images_with_background[2]?.url;
+  const profiles = useUserStore((state) => state.profiles);
+
+  const replyProfile = reply_message
+    ? profiles[reply_message.from_id]
+    : undefined;
 
   if (!profile) {
     return (
@@ -52,7 +60,7 @@ export const MessageBubble = ({
         </Avatar>
       )}
 
-      <div className="flex flex-col items-start">
+      <div className={cn("flex flex-col")}>
         {!isCurrentUser && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium">{displayName}</span>
@@ -65,21 +73,31 @@ export const MessageBubble = ({
 
         <div
           className={cn(
-            "rounded-2xl px-4 py-2 break-words",
+            "rounded-2xl p-2 break-words",
             isCurrentUser ? "bg-[#5d3f92]" : "bg-[#2a2a3a]",
-            !text && stickerUrl && "p-0 bg-transparent"
+            !text && stickerUrl && "p-0 bg-transparent flex flex-col items-end"
           )}
         >
+          {reply_message && (
+            <ReplyBlock message={reply_message} profile={replyProfile} />
+          )}
+
           {text && (
-            <div className={cn("whitespace-pre-wrap", stickerUrl && "mb-2")}>
+            <div
+              className={cn(
+                "text-sm whitespace-pre-wrap",
+                stickerUrl && "mb-2"
+              )}
+            >
               {parseTextWithLinks(text)}
             </div>
           )}
+
           {stickerUrl && (
             <img
               src={stickerUrl || "/placeholder.svg"}
               alt="Sticker"
-              className="max-w-[128px] h-auto"
+              className="max-w-[200px] h-auto"
             />
           )}
         </div>
