@@ -4,20 +4,21 @@ import { create } from "zustand";
 
 interface IHistory {
   isLoading: boolean;
-  history: VKMessageHistory | undefined;
+  history: VKMessageHistory | null;
   fetchHistory: (peer_id: number) => void;
+  clearHistory: () => void;
 }
 
 export const useMessageHistory = create<IHistory>((set) => ({
-  history: undefined,
+  history: null,
   isLoading: true,
   fetchHistory: (peer_id: number) => {
     vkService
       .getHistory(peer_id)
       .then((data) => {
         set({ history: data });
-        console.log(data);
       })
       .finally(() => set({ isLoading: false }));
   },
+  clearHistory: () => set({ history: null }),
 }));

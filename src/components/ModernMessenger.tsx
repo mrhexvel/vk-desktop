@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
-import { VKApiService } from "@/services/vk.service";
+import { VKApiService, vkService } from "@/services/vk.service";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import { useMessageHistory } from "@/store/useMessageHistory";
-import { VKConversationItem } from "@/types/vk.type";
+import { useUserStore } from "@/store/userStore";
+import { VKConversationItem, VKProfile } from "@/types/vk.type";
+import { debounce } from "lodash";
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageBubble } from "./chat/MessageBubble";
 import { ChatHeader } from "./ChatHeader";
 import { Sidebar } from "./Sidebar";
@@ -20,9 +22,109 @@ export const ModernMessenger = () => {
   const groups = conversations?.groups;
   const [activeConversation, setActiveConversation] =
     useState<VKConversationItem | null>(null);
-
   const fetchHistory = useMessageHistory((state) => state.fetchHistory);
+  const clearHistory = useMessageHistory((state) => state.clearHistory);
   const messages = useMessageHistory((state) => state.history);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const debouncedFetchHistory = useMemo(
+    () =>
+      debounce((peerId: number) => {
+        fetchHistory(peerId);
+      }, 300),
+    [fetchHistory]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedFetchHistory.cancel();
+    };
+  }, [debouncedFetchHistory]);
+
+  useEffect(() => {
+    if (activeConversation) {
+      const peerId = activeConversation.conversation.peer.id;
+      clearHistory();
+      debouncedFetchHistory(peerId);
+    }
+    scrollToBottom();
+  }, [activeConversation, debouncedFetchHistory, clearHistory]);
+
+  useEffect(() => {
+    if (messages?.items) {
+      const participantIds = [
+        ...new Set(messages.items.map((msg) => msg.from_id)),
+      ];
+      console.log(messages.items);
+      const userIds = participantIds.filter((id) => id > 0);
+      const groupIds = participantIds.filter((id) => id < 0).map((id) => +id);
+
+      const currentProfiles = useUserStore.getState().profiles;
+      const missingUserIds = userIds.filter((id) => !currentProfiles[id]);
+      const missingGroupIds = groupIds.filter((id) => !currentProfiles[-id]);
+
+      if (missingUserIds.length > 0 || missingGroupIds.length > 0) {
+        const executeCode = `
+          var users = API.users.get({"user_ids": "${missingUserIds.join(
+            ","
+          )}", "fields": "photo_100"});
+          var groups = API.groups.getById({"group_ids": "${missingGroupIds.join(
+            ","
+          )}", "fields": "photo_100"});
+          return {"users": users, "groups": groups};
+        `;
+
+        vkService
+          .execute(executeCode)
+          .then((response) => {
+            const users = response.users || [];
+            const groups = response.groups || [];
+
+            const userProfiles: VKProfile[] = users.map((user) => ({
+              id: user.id,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              photo_100: user.photo_100,
+              isGroup: false,
+            }));
+
+            const groupProfiles: VKProfile[] = groups.map((group) => ({
+              id: -group.id,
+              first_name: group.name,
+              name: group.name,
+              photo_100: group.photo_100,
+              isGroup: true,
+            }));
+
+            const combinedProfiles = [...userProfiles, ...groupProfiles];
+            useUserStore.getState().setProfiles(combinedProfiles);
+          })
+          .catch((error) => {
+            console.error("Ошибка execute запроса:", error);
+          });
+      }
+    }
+  }, [messages]);
+
+  const profileMap = useMemo(() => {
+    const map: Record<number, VKProfile> = {};
+    if (messages?.items) {
+      messages.items.forEach((msg) => {
+        const profile =
+          profiles?.find((p) => p.id === msg.from_id) ||
+          useUserStore.getState().profiles[msg.from_id];
+        if (profile) {
+          map[msg.from_id] = profile;
+        }
+      });
+    }
+    return map;
+  }, [messages, profiles]);
 
   const handleSendMessage = (): void => {
     if (messageText.trim()) {
@@ -37,22 +139,6 @@ export const ModernMessenger = () => {
       handleSendMessage();
     }
   };
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-
-    if (activeConversation) {
-      fetchHistory(activeConversation.conversation.peer.id);
-    }
-  }, [activeConversation, fetchHistory, messageText]);
-
-  console.log(messages);
 
   return (
     <div className="flex h-screen bg-[#121218] text-white">
@@ -86,9 +172,22 @@ export const ModernMessenger = () => {
 
               <ScrollArea className="flex-1 h-72 p-4">
                 <div className="flex flex-col gap-4 max-w-3xl mx-auto">
-                  {messages?.items.map((message) => {
-                    return <MessageBubble {...message} key={message.id} />;
-                  })}
+                  {messages?.items.length === 0 ? (
+                    <p>Загрузка...</p>
+                  ) : !messages ? (
+                    <p>Дададад</p>
+                  ) : (
+                    [...messages.items].reverse().map((message) => {
+                      return (
+                        <MessageBubble
+                          {...message}
+                          key={message.id}
+                          profile={profileMap[message.from_id]}
+                        />
+                      );
+                    })
+                  )}
+
                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>

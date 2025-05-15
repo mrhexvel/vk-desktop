@@ -34,10 +34,10 @@ export class VKApiService {
     }
   }
 
-  async usersGet(user_ids?: string): Promise<VKProfile> {
+  async usersGet(user_ids?: string): Promise<VKProfile[]> {
     try {
       const response = await window.vkApi.usersGet(this.accessToken, user_ids);
-      return response[0];
+      return response;
     } catch (error) {
       console.error("Error execute:", error);
       throw error;

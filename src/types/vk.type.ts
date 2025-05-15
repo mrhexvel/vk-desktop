@@ -1,18 +1,20 @@
 export interface VKProfile {
   id: number;
   first_name: string;
-  last_name: string;
+  last_name?: string;
   photo_50?: string;
   photo_100?: string;
-  online: number;
-  screen_name: string;
-  sex: number;
+  online?: number;
+  screen_name?: string;
+  sex?: number;
   online_info?: {
     visible: boolean;
     last_seen: number;
     is_online: boolean;
     app_id: number;
   };
+  isGroup: boolean;
+  name?: string;
 }
 
 export interface VKGroup {
@@ -93,6 +95,7 @@ export interface VKAudioMessageAttachment {
 export interface VKStickerMessageAttachment {
   type: "sticker";
   sticker: {
+    images: { url: string }[];
     animation_url?: string;
     sticker_id: number;
     product_id: number;

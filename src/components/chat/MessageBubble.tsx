@@ -1,17 +1,29 @@
-import { useGetUser } from "@/hooks/useGetUser";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/userStore";
-import { VKMessage } from "@/types/vk.type";
+import { VKMessage, VKProfile } from "@/types/vk.type";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
-export const MessageBubble = ({ from_id, text }: VKMessage) => {
+export const MessageBubble = ({
+  from_id,
+  text,
+  attachments,
+  profile,
+}: VKMessage & {
+  profile?: VKProfile;
+}) => {
+  console.log(attachments);
   const data = useUserStore((state) => state.user);
-  const { isLoading, profile } = useGetUser(from_id);
   const isCurrentUser = from_id === data?.id;
+  const sticker = attachments?.find((att) => att.type === "sticker")?.sticker;
+  const stickerUrl = sticker?.images[1]?.url;
 
-  if (isLoading) {
+  if (!profile) {
     return <p>Загрузка</p>;
   }
+
+  const displayName = profile.isGroup
+    ? profile.name
+    : `${profile.first_name} ${profile.last_name || ""}`.trim();
 
   return (
     <div
@@ -23,11 +35,11 @@ export const MessageBubble = ({ from_id, text }: VKMessage) => {
       {!isCurrentUser && (
         <Avatar className="h-8 w-8 mt-1 bg-[#2a2a3a]">
           <AvatarImage
-            src={profile?.photo_100 || "/placeholder.svg"}
-            alt={profile?.first_name || ""}
+            src={profile.photo_100 || "/placeholder.svg"}
+            alt={displayName}
           />
           <AvatarFallback>
-            {profile?.first_name?.substring(0, 2) || "UN"}
+            {displayName?.substring(0, 2) || "UN"}
           </AvatarFallback>
         </Avatar>
       )}
@@ -35,11 +47,9 @@ export const MessageBubble = ({ from_id, text }: VKMessage) => {
       <div className="flex flex-col items-start">
         {!isCurrentUser && (
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium">
-              {profile?.first_name} {data?.last_name}
-            </span>
+            <span className="text-sm font-medium">{displayName}</span>
             <span className="text-xs text-gray-400">02:36</span>
-            {profile?.id === 715616525 && (
+            {profile.id === 715616525 && !profile.isGroup && (
               <span className="text-xs text-gray-400">Разработчик</span>
             )}
           </div>
@@ -48,10 +58,22 @@ export const MessageBubble = ({ from_id, text }: VKMessage) => {
         <div
           className={cn(
             "rounded-2xl px-4 py-2 break-words",
-            isCurrentUser ? "bg-[#5d3f92]" : "bg-[#2a2a3a]"
+            isCurrentUser ? "bg-[#5d3f92]" : "bg-[#2a2a3a]",
+            !text && stickerUrl && "p-0 bg-transparent"
           )}
         >
-          {text}
+          {text && (
+            <div className={cn("whitespace-pre-wrap", stickerUrl && "mb-2")}>
+              {text}
+            </div>
+          )}
+          {stickerUrl && (
+            <img
+              src={stickerUrl}
+              alt="Sticker"
+              className="max-w-[128px] h-auto"
+            />
+          )}
         </div>
       </div>
     </div>
