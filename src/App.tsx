@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const isConversationsLoading = useConversationsStore(
     (state) => state.isLoading
   );
+  const conversations = useConversationsStore((state) => state.conversations);
   const fetchConversations = useConversationsStore(
     (state) => state.fetchConversations
   );
@@ -20,7 +21,7 @@ const App: React.FC = () => {
     fetchConversations();
   }, [fetchUser, fetchConversations]);
 
-  if (isUserLoading || isConversationsLoading) {
+  if ((isUserLoading || isConversationsLoading) && !conversations) {
     return <Loader />;
   }
 

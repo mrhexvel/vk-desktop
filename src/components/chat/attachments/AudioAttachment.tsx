@@ -25,6 +25,32 @@ export const AudioMessage = ({
     (value) => value / Math.max(...audioMessage.waveform)
   );
 
+  const drawWaveform = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const barWidth = width / normalizedWaveform.length;
+    const playedRatio = currentTime / duration;
+
+    ctx.clearRect(0, 0, width, height);
+
+    normalizedWaveform.forEach((value, index) => {
+      const barHeight = value * height * 0.8;
+      const x = index * barWidth;
+      const y = (height - barHeight) / 2;
+
+      const isPlayed = index / normalizedWaveform.length < playedRatio;
+
+      ctx.fillStyle = isPlayed ? "#8B5CF6" : "#6B7280";
+      ctx.fillRect(x, y, barWidth - 1, barHeight);
+    });
+  };
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.addEventListener("loadedmetadata", () => {
@@ -54,7 +80,7 @@ export const AudioMessage = ({
 
   useEffect(() => {
     drawWaveform();
-  }, [currentTime, isPlaying]);
+  }, [currentTime, drawWaveform, isPlaying]);
 
   const togglePlayPause = () => {
     if (isPlaying) {
@@ -74,32 +100,6 @@ export const AudioMessage = ({
       setCurrentTime(audioRef.current.currentTime);
       animationRef.current = requestAnimationFrame(updateTime);
     }
-  };
-
-  const drawWaveform = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-    const barWidth = width / normalizedWaveform.length;
-    const playedRatio = currentTime / duration;
-
-    ctx.clearRect(0, 0, width, height);
-
-    normalizedWaveform.forEach((value, index) => {
-      const barHeight = value * height * 0.8;
-      const x = index * barWidth;
-      const y = (height - barHeight) / 2;
-
-      const isPlayed = index / normalizedWaveform.length < playedRatio;
-
-      ctx.fillStyle = isPlayed ? "#8B5CF6" : "#6B7280";
-      ctx.fillRect(x, y, barWidth - 1, barHeight);
-    });
   };
 
   return (

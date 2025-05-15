@@ -3,14 +3,17 @@
 import type React from "react";
 
 import { cn } from "@/lib/utils";
+import { longPollingService } from "@/services/longpolling.service";
 import { VKApiService, vkService } from "@/services/vk.service";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import { useMessageHistory } from "@/store/useMessageHistory";
 import { useUserStore } from "@/store/userStore";
+import { useTypingStore } from "@/store/useTypingStore";
 import type { VKConversationItem, VKProfile } from "@/types/vk.type";
 import { Mic, Paperclip, Reply, Send, Smile } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MessageBubble } from "./chat/MessageBubble";
+import { TypingIndicator } from "./chat/TypingIndicator";
 import { ChatHeader } from "./ChatHeader";
 import { Sidebar } from "./Sidebar";
 import { Button } from "./ui/button";
@@ -21,16 +24,37 @@ export const ModernMessenger = () => {
   const [messageText, setMessageText] = useState("");
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const conversations = useConversationsStore((state) => state.conversations);
+  const updateConversationsBackground = useConversationsStore(
+    (state) => state.updateConversationsBackground
+  );
   const profiles = conversations?.profiles;
   const groups = conversations?.groups;
   const [activeConversation, setActiveConversation] =
     useState<VKConversationItem | null>(null);
   const fetchHistory = useMessageHistory((state) => state.fetchHistory);
+  const updateHistoryBackground = useMessageHistory(
+    (state) => state.updateHistoryBackground
+  );
+  const addMessage = useMessageHistory((state) => state.addMessage);
   const clearHistory = useMessageHistory((state) => state.clearHistory);
   const messages = useMessageHistory((state) => state.history);
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const isHistoryLoading = useMessageHistory((state) => state.isLoading);
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
+
+  const activePeerId = activeConversation
+    ? activeConversation.conversation.peer.id
+    : null;
+
+  const [typingUsers, setTypingUsers] = useState<number[]>([]);
+
+  useMemo(() => {
+    if (activePeerId) {
+      setTypingUsers(useTypingStore.getState().getTypingUsers(activePeerId));
+    } else {
+      setTypingUsers([]);
+    }
+  }, [activePeerId]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -39,12 +63,99 @@ export const ModernMessenger = () => {
   };
 
   useEffect(() => {
+    longPollingService.start();
+
+    return () => {
+      longPollingService.stop();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleUpdateConversations = () => {
+      updateConversationsBackground();
+    };
+
+    const handleUpdateMessageHistory = (peerId: number) => {
+      if (activePeerId === peerId) {
+        updateHistoryBackground(peerId);
+      }
+    };
+
+    const handleNewMessage = (data: {
+      peerId: number;
+      messageId: number;
+      isOutgoing: boolean;
+    }) => {
+      handleUpdateConversations();
+      if (activePeerId === data.peerId) {
+        updateHistoryBackground(data.peerId);
+        setTimeout(scrollToBottom, 300);
+      }
+    };
+
+    const unsubscribeNewMessage = window.vkApi.onNewMessage(handleNewMessage);
+    const unsubscribeUpdateConversations = window.vkApi.onUpdateConversations(
+      handleUpdateConversations
+    );
+    const unsubscribeUpdateMessageHistory = window.vkApi.onUpdateMessageHistory(
+      handleUpdateMessageHistory
+    );
+
+    return () => {
+      unsubscribeNewMessage();
+      unsubscribeUpdateConversations();
+      unsubscribeUpdateMessageHistory();
+    };
+  }, [
+    activePeerId,
+    updateConversationsBackground,
+    updateHistoryBackground,
+    addMessage,
+  ]);
+
+  useEffect(() => {
+    if (!activePeerId) return;
+
+    const updateTyping = () => {
+      setTypingUsers(useTypingStore.getState().getTypingUsers(activePeerId));
+    };
+
+    const unsubscribe = useTypingStore.subscribe(updateTyping);
+
+    const handleTyping = (data: { userId: number; peerId: number }) => {
+      if (data.peerId === activePeerId) {
+        useTypingStore.getState().setTyping(data.peerId, data.userId);
+        updateTyping();
+      }
+    };
+
+    const unsubscribeTyping = window.vkApi.onTyping(handleTyping);
+
+    return () => {
+      unsubscribe();
+      unsubscribeTyping();
+    };
+  }, [activePeerId]);
+
+  useEffect(() => {
+    if (!activePeerId) return;
+
+    const interval = setInterval(() => {
+      setTypingUsers(useTypingStore.getState().getTypingUsers(activePeerId));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activePeerId]);
+
+  useEffect(() => {
     if (activeConversation) {
       const peerId = activeConversation.conversation.peer.id;
       clearHistory();
       setIsMessagesLoading(true);
       fetchHistory(peerId);
       setReplyToMessage(null);
+
+      longPollingService.setActiveConversation(peerId);
     }
     scrollToBottom();
   }, [activeConversation, fetchHistory, clearHistory]);
@@ -52,6 +163,7 @@ export const ModernMessenger = () => {
   useEffect(() => {
     if (!isHistoryLoading && messages) {
       setIsMessagesLoading(false);
+      setTimeout(scrollToBottom, 100);
     }
   }, [isHistoryLoading, messages]);
 
@@ -62,7 +174,6 @@ export const ModernMessenger = () => {
 
         items.forEach((msg) => {
           ids.push(msg.from_id);
-
           if (msg.reply_message) {
             ids.push(msg.reply_message.from_id);
           }
@@ -174,11 +285,44 @@ export const ModernMessenger = () => {
     return { message, profile };
   }, [replyToMessage, messages, profileMap]);
 
+  const typingIndicator = useMemo(() => {
+    if (!typingUsers.length) return null;
+
+    const typingNames = typingUsers
+      .map((userId) => {
+        const profile = profileMap[userId];
+        if (!profile) return `id${userId}`;
+        return profile.isGroup
+          ? profile.name
+          : `${profile.first_name} ${profile.last_name || ""}`.trim();
+      })
+      .join(", ");
+
+    return <TypingIndicator userName={typingNames} />;
+  }, [typingUsers, profileMap]);
+
   const cropText = (text: string, maxLength: number): string => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
+
+  const getAvatarMemo = useCallback(
+    (conv: VKConversationItem) => {
+      if (!profiles || !groups) return undefined;
+      return VKApiService.getConversationAvatar(conv, profiles, groups);
+    },
+    [profiles, groups]
+  );
+
+  const handleSelectConversation = useCallback(
+    (conversation: VKConversationItem) => {
+      setActiveConversation(conversation);
+    },
+    []
+  );
+
+  const isLoading = messages?.items.length === 0 || !messages?.items;
 
   return (
     <div className="flex h-screen bg-[#121218] text-white">
@@ -186,10 +330,8 @@ export const ModernMessenger = () => {
         <Sidebar
           conversations={conversations?.items}
           activeId={activeConversation?.conversation.peer.id}
-          onSelect={(conversation) => setActiveConversation(conversation)}
-          getAvatar={(conv) =>
-            VKApiService.getConversationAvatar(conv, profiles!, groups!)
-          }
+          onSelect={handleSelectConversation}
+          getAvatar={getAvatarMemo}
         />
         <div
           className={cn(
@@ -205,28 +347,25 @@ export const ModernMessenger = () => {
                 groups={groups}
                 showRightSidebar={showRightSidebar}
                 setShowRightSidebar={setShowRightSidebar}
-                getAvatar={(conv) =>
-                  VKApiService.getConversationAvatar(conv, profiles!, groups!)
-                }
+                getAvatar={getAvatarMemo}
               />
 
               <ScrollArea className="flex-1 h-72 p-4">
-                <div className="flex flex-col gap-4 max-w-3xl mx-auto">
+                <div className="flex flex-col gap-4 px-7">
                   {isMessagesLoading ? (
                     <div className="flex justify-center items-center h-32">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                     </div>
-                  ) : messages?.items.length === 0 || !messages?.items ? (
+                  ) : isLoading ? (
                     <p className="text-center text-gray-400">Нет сообщений</p>
                   ) : (
                     [...messages.items]
                       .reverse()
                       .map((message) => (
                         <MessageBubble
-                          key={message.id}
                           {...message}
-                          profileMap={profileMap}
                           profile={profileMap[message.from_id]}
+                          profileMap={profileMap}
                         />
                       ))
                   )}
@@ -236,6 +375,10 @@ export const ModernMessenger = () => {
               </ScrollArea>
 
               <div className="p-3">
+                {typingIndicator && (
+                  <div className="mx-3 mb-1">{typingIndicator}</div>
+                )}
+
                 {replyMessageInfo && (
                   <div className="mx-3 mb-2 p-2 bg-[#2a2a3a] rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-2">

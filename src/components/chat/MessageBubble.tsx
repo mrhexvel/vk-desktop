@@ -79,7 +79,7 @@ export const MessageBubble = ({
   return (
     <div
       className={cn(
-        "flex gap-3 max-w-[80%]",
+        "flex gap-3 max-w-[70%]",
         isCurrentUser ? "self-end" : "self-start"
       )}
     >
@@ -95,7 +95,7 @@ export const MessageBubble = ({
         </Avatar>
       )}
 
-      <div className={cn("flex flex-col items-start w-full")}>
+      <div className={cn("flex flex-col items-start")}>
         {!isCurrentUser && !isForwarded && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium">

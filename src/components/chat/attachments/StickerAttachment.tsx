@@ -11,7 +11,7 @@ export const StickerAttachment = ({ sticker }: StickerAttachmentProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
-  const stickerImage = sticker.images[1];
+  const stickerImage = sticker.images[2];
   const hasAnimation = !!sticker.animation_url;
 
   useEffect(() => {

@@ -10,8 +10,6 @@ export const ForwardedMessages = ({
   messages,
   profileMap,
 }: ForwardedMessagesProps) => {
-  console.log(profileMap);
-
   return (
     <div className="pl-2 my-2">
       {messages.map((message) => (

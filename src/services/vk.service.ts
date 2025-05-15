@@ -1,4 +1,4 @@
-import {
+import type {
   ExecuteProfiles,
   VKConversationItem,
   VKGetConversationsResponse,
@@ -12,6 +12,10 @@ export class VKApiService {
 
   constructor(accessToken: string) {
     this.accessToken = accessToken;
+  }
+
+  getAccessToken(): string {
+    return this.accessToken;
   }
 
   async getConversations(): Promise<VKGetConversationsResponse["response"]> {
@@ -58,11 +62,50 @@ export class VKApiService {
   }
 
   async getHistory(peer_id: number): Promise<VKMessageHistory> {
+    const maxRetries = 2;
+    let retries = 0;
+
+    const tryFetchHistory = async (): Promise<VKMessageHistory> => {
+      try {
+        const response = await window.vkApi.getHistory(
+          this.accessToken,
+          peer_id
+        );
+        return response;
+      } catch (error) {
+        if (retries < maxRetries) {
+          retries++;
+          const delay = 300 * Math.pow(2, retries);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return tryFetchHistory();
+        }
+
+        throw error;
+      }
+    };
+
+    return tryFetchHistory();
+  }
+
+  async getMessageById(message_id: number): Promise<VKMessageHistory> {
     try {
-      const response = await window.vkApi.getHistory(this.accessToken, peer_id);
+      const response = await window.vkApi.getMessagesById(
+        this.accessToken,
+        message_id
+      );
       return response;
     } catch (error) {
-      console.error("Error execute:", error);
+      console.error(`Error fetching message info for message:`, error);
+      throw error;
+    }
+  }
+
+  async getLongPollServer() {
+    try {
+      const response = await window.vkApi.getLongPollServer(this.accessToken);
+      return response;
+    } catch (error) {
+      console.error("Error getting Long Poll server:", error);
       throw error;
     }
   }
@@ -109,9 +152,37 @@ declare global {
         accessToken: string,
         peer_id: number
       ) => Promise<VKMessageHistory>;
+
+      getMessagesById: (
+        accessToken: string,
+        message_id: number
+      ) => Promise<VKMessageHistory>;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      getLongPollServer: (accessToken: string) => Promise<any>;
+
+      startLongPolling: (accessToken: string) => Promise<boolean>;
+
+      stopLongPolling: () => Promise<boolean>;
+
+      setActiveConversation: (
+        conversationId: number | null
+      ) => Promise<boolean>;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onNewMessage: (callback: (data: any) => void) => () => void;
+
+      onUpdateConversations: (callback: () => void) => () => void;
+
+      onUpdateMessageHistory: (
+        callback: (peerId: number) => void
+      ) => () => void;
+
+      onTyping: (
+        callback: (data: { userId: number; peerId: number }) => void
+      ) => () => void;
     };
   }
 }
 
-// да, я долбаёб, но об этом никому 🤫
 export const vkService = new VKApiService(import.meta.env.VITE_ACCESS_TOKEN);

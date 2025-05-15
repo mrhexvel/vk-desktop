@@ -11658,7 +11658,14 @@ var _eval = EvalError;
 var range = RangeError;
 var ref = ReferenceError;
 var syntax = SyntaxError;
-var type = TypeError;
+var type;
+var hasRequiredType;
+function requireType() {
+  if (hasRequiredType) return type;
+  hasRequiredType = 1;
+  type = TypeError;
+  return type;
+}
 var uri = URIError;
 var abs$1 = Math.abs;
 var floor$1 = Math.floor;
@@ -11918,7 +11925,7 @@ function requireCallBindApplyHelpers() {
   if (hasRequiredCallBindApplyHelpers) return callBindApplyHelpers;
   hasRequiredCallBindApplyHelpers = 1;
   var bind2 = requireFunctionBind();
-  var $TypeError2 = type;
+  var $TypeError2 = requireType();
   var $call2 = requireFunctionCall();
   var $actualApply = requireActualApply();
   callBindApplyHelpers = function callBindBasic(args) {
@@ -11998,7 +12005,7 @@ var $EvalError = _eval;
 var $RangeError = range;
 var $ReferenceError = ref;
 var $SyntaxError = syntax;
-var $TypeError$1 = type;
+var $TypeError$1 = requireType();
 var $URIError = uri;
 var abs = abs$1;
 var floor = floor$1;
@@ -12329,7 +12336,7 @@ var GetIntrinsic2 = getIntrinsic;
 var $defineProperty = GetIntrinsic2("%Object.defineProperty%", true);
 var hasToStringTag = requireShams()();
 var hasOwn = requireHasown();
-var $TypeError = type;
+var $TypeError = requireType();
 var toStringTag = hasToStringTag ? Symbol.toStringTag : null;
 var esSetTostringtag = function setToStringTag(object, value) {
   var overrideIfSet = arguments.length > 2 && !!arguments[2] && arguments[2].force;
@@ -16788,6 +16795,58 @@ ipcMain.handle(
   }
 );
 ipcMain.handle(
+  "vk:messages.getLongPollServer",
+  async (_, accessToken) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/messages.getLongPollServer`,
+        {
+          params: {
+            access_token: accessToken,
+            v: "5.131",
+            lp_version: 10,
+            need_pts: 1
+          }
+        }
+      );
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+      return response.data.response;
+    } catch (error) {
+      console.error("Error getting Long Poll server:", error);
+      throw error;
+    }
+  }
+);
+ipcMain.handle(
+  "vk:messages.getById",
+  async (_, accessToken, message_id) => {
+    try {
+      console.log(`Fetching message info for message ${message_id}...`);
+      const response = await axios.get(`${API_URL}/messages.getById`, {
+        params: {
+          access_token: accessToken,
+          v: "5.131",
+          message_ids: message_id,
+          extended: 1
+        }
+      });
+      if (response.data.error) {
+        throw new Error(response.data.error.error_msg);
+      }
+      console.log(`Fetched info for message ${message_id}`);
+      return response.data.response;
+    } catch (error) {
+      console.error(
+        `Error fetching message info for message ${message_id}:`,
+        error
+      );
+      throw error;
+    }
+  }
+);
+ipcMain.handle(
   "vk:users.get",
   async (_, accessToken, user_ids) => {
     try {
@@ -16831,6 +16890,11 @@ const MAIN_DIST = path$1.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path$1.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
+let longPollActive = false;
+let longPollServer = null;
+let activeConversationId = null;
+const processedMessages = /* @__PURE__ */ new Set();
+const MESSAGE_CACHE_TIMEOUT = 5e3;
 function createWindow() {
   win = new BrowserWindow({
     icon: path$1.join(process.env.VITE_PUBLIC, "vk-logo.svg"),
@@ -16851,6 +16915,254 @@ function createWindow() {
     win.loadFile(path$1.join(RENDERER_DIST, "index.html"));
   }
 }
+const pendingUpdates = {
+  newMessages: /* @__PURE__ */ new Set(),
+  editedMessages: /* @__PURE__ */ new Set(),
+  readMessages: /* @__PURE__ */ new Set(),
+  typingUsers: /* @__PURE__ */ new Map(),
+  updateConversations: false,
+  updateHistory: /* @__PURE__ */ new Set()
+};
+let updateTimeout = null;
+const UPDATE_DELAY = 300;
+function scheduleUpdates() {
+  if (updateTimeout) {
+    clearTimeout(updateTimeout);
+  }
+  updateTimeout = setTimeout(() => {
+    processUpdates();
+    updateTimeout = null;
+  }, UPDATE_DELAY);
+}
+function processUpdates() {
+  if (!win) return;
+  if (pendingUpdates.updateHistory.size > 0) {
+    for (const peerId of pendingUpdates.updateHistory) {
+      win.webContents.send("vk:updateMessageHistory", peerId);
+    }
+    pendingUpdates.updateHistory.clear();
+  }
+  if (pendingUpdates.updateConversations) {
+    win.webContents.send("vk:updateConversations");
+    pendingUpdates.updateConversations = false;
+  }
+  if (pendingUpdates.typingUsers.size > 0) {
+    for (const [peerId, userIds] of pendingUpdates.typingUsers.entries()) {
+      for (const userId of userIds) {
+        win.webContents.send("vk:typing", { userId, peerId });
+      }
+    }
+    pendingUpdates.typingUsers.clear();
+  }
+  if (pendingUpdates.newMessages.size > 0) {
+    pendingUpdates.newMessages.clear();
+  }
+  pendingUpdates.editedMessages.clear();
+  pendingUpdates.readMessages.clear();
+}
+function isMessageProcessed(messageId, peerId) {
+  const key = `${messageId}_${peerId}`;
+  if (processedMessages.has(key)) {
+    return true;
+  }
+  processedMessages.add(key);
+  setTimeout(() => {
+    processedMessages.delete(key);
+  }, MESSAGE_CACHE_TIMEOUT);
+  return false;
+}
+async function getLongPollServer(accessToken) {
+  try {
+    const response = await axios.get(`${API_URL}/messages.getLongPollServer`, {
+      params: {
+        access_token: accessToken,
+        v: "5.131",
+        lp_version: 10,
+        need_pts: 1
+      }
+    });
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return response.data.response;
+  } catch (error) {
+    console.error("Error getting Long Poll server:", error);
+    throw error;
+  }
+}
+async function startLongPolling(accessToken) {
+  if (longPollActive) return;
+  try {
+    longPollServer = await getLongPollServer(accessToken);
+    longPollActive = true;
+    poll(accessToken);
+  } catch (error) {
+    console.error("Failed to start Long Polling:", error);
+  }
+}
+async function poll(accessToken) {
+  if (!longPollActive || !longPollServer || !win) return;
+  try {
+    const { server, key, ts } = longPollServer;
+    const response = await axios.get(`https://${server}`, {
+      params: {
+        act: "a_check",
+        key,
+        ts,
+        wait: 25,
+        mode: 2,
+        version: 10
+      }
+    });
+    if (response.data.failed) {
+      await handleFailure(response.data.failed, accessToken);
+    } else {
+      longPollServer.ts = response.data.ts;
+      await handleUpdates(response.data.updates, accessToken);
+    }
+    if (longPollActive) {
+      poll(accessToken);
+    }
+  } catch (error) {
+    console.error("Long Polling error:", error);
+    setTimeout(() => {
+      if (longPollActive) {
+        startLongPolling(accessToken);
+      }
+    }, 3e3);
+  }
+}
+async function handleFailure(failCode, accessToken) {
+  switch (failCode) {
+    case 1:
+      if (longPollServer) {
+        longPollServer = await getLongPollServer(accessToken);
+      }
+      break;
+    case 2:
+    case 3:
+      longPollServer = await getLongPollServer(accessToken);
+      break;
+    default:
+      throw new Error(`Unknown Long Polling error: ${failCode}`);
+  }
+}
+async function handleUpdates(updates, accessToken) {
+  if (!win) return;
+  let hasUpdates = false;
+  let hasNewMessages = false;
+  let hasConversationUpdates = false;
+  for (const update of updates) {
+    const [eventType, ...eventData] = update;
+    switch (eventType) {
+      case 4:
+        if (handleNewMessage(eventData)) {
+          hasUpdates = true;
+          hasNewMessages = true;
+          hasConversationUpdates = true;
+        }
+        break;
+      case 5:
+        await handleEditMessage(eventData);
+        if (handleNewMessage(eventData)) {
+          hasUpdates = true;
+          hasNewMessages = true;
+          hasConversationUpdates = true;
+        }
+        break;
+      case 6:
+      case 7:
+        await handleReadMessages(eventData);
+        if (handleNewMessage(eventData)) {
+          hasUpdates = true;
+          hasNewMessages = true;
+          hasConversationUpdates = true;
+        }
+        break;
+      case 13:
+        handleTyping(eventData);
+        if (handleNewMessage(eventData)) {
+          hasUpdates = true;
+          hasNewMessages = true;
+          hasConversationUpdates = true;
+        }
+        break;
+    }
+  }
+  if (hasNewMessages || hasConversationUpdates) {
+    processUpdatesImmediately(hasNewMessages, hasConversationUpdates);
+  }
+  if (hasUpdates) {
+    scheduleUpdates();
+  }
+}
+function processUpdatesImmediately(hasNewMessages, hasConversationUpdates) {
+  if (!win) return;
+  if (hasConversationUpdates) {
+    win.webContents.send("vk:updateConversations");
+  }
+  if (hasNewMessages && activeConversationId && pendingUpdates.updateHistory.has(activeConversationId)) {
+    win.webContents.send("vk:updateMessageHistory", activeConversationId);
+    pendingUpdates.updateHistory.delete(activeConversationId);
+  }
+}
+function handleNewMessage(eventData) {
+  const messageId = eventData[0];
+  const flags = eventData[1];
+  const peerId = eventData[3];
+  if (isMessageProcessed(messageId, peerId)) {
+    return false;
+  }
+  const isOutgoing = !!(flags & 2);
+  pendingUpdates.newMessages.add(messageId);
+  pendingUpdates.updateConversations = true;
+  if (activeConversationId === peerId) {
+    pendingUpdates.updateHistory.add(peerId);
+  }
+  if (win) {
+    win.webContents.send("vk:newMessage", { peerId, messageId, isOutgoing });
+  }
+  return true;
+}
+async function handleEditMessage(eventData, _accessToken) {
+  const messageId = eventData[0];
+  const peerId = eventData[3];
+  pendingUpdates.editedMessages.add(messageId);
+  if (activeConversationId === peerId) {
+    pendingUpdates.updateHistory.add(peerId);
+  }
+}
+async function handleReadMessages(eventData, _eventType, _accessToken) {
+  eventData[0];
+  const messageId = eventData[1];
+  pendingUpdates.readMessages.add(messageId);
+  pendingUpdates.updateConversations = true;
+  return true;
+}
+function handleTyping(eventData) {
+  const userId = eventData[0];
+  const peerId = eventData[1];
+  if (!pendingUpdates.typingUsers.has(peerId)) {
+    pendingUpdates.typingUsers.set(peerId, /* @__PURE__ */ new Set());
+  }
+  pendingUpdates.typingUsers.get(peerId).add(userId);
+  return true;
+}
+ipcMain.handle("vk:startLongPolling", async (_, accessToken) => {
+  return await startLongPolling(accessToken);
+});
+ipcMain.handle("vk:stopLongPolling", () => {
+  longPollActive = false;
+  longPollServer = null;
+  return true;
+});
+ipcMain.handle(
+  "vk:setActiveConversation",
+  (_, conversationId) => {
+    activeConversationId = conversationId;
+    return true;
+  }
+);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
