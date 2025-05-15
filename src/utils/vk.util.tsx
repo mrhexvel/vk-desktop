@@ -56,3 +56,43 @@ export const getMessageSendersInfo = async (fromIds: number[]) => {
   const response = await vkService.execute(code);
   return response;
 };
+
+export const parseTextWithLinks = (text: string) => {
+  const linkRegex = /\[(id\d+|\{[^}]+})\|([^[\]]*)\]/g;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+
+  text.replace(linkRegex, (match, link, displayText, index) => {
+    if (index > lastIndex) {
+      parts.push(text.slice(lastIndex, index));
+    }
+
+    let href = "";
+    if (link.startsWith("id")) {
+      href = `https://vk.com/${link}`;
+    } else if (link.startsWith("{")) {
+      href = link.slice(1, -1);
+    }
+
+    parts.push(
+      <a
+        key={index}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-purple-400 hover:underline"
+      >
+        {displayText}
+      </a>
+    );
+
+    lastIndex = index + match.length;
+    return match;
+  });
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+};

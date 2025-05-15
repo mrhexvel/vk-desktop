@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/userStore";
 import { VKMessage, VKProfile } from "@/types/vk.type";
+import { parseTextWithLinks } from "@/utils/vk.util";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export const MessageBubble = ({
@@ -64,7 +65,7 @@ export const MessageBubble = ({
         >
           {text && (
             <div className={cn("whitespace-pre-wrap", stickerUrl && "mb-2")}>
-              {text}
+              {parseTextWithLinks(text)}
             </div>
           )}
           {stickerUrl && (
