@@ -310,9 +310,9 @@ export const ModernMessenger = () => {
   const getAvatarMemo = useCallback(
     (conv: VKConversationItem) => {
       if (!profiles || !groups) return undefined;
-      return VKApiService.getConversationAvatar(conv, profiles, groups);
+      return VKApiService.getConversationAvatar(conv, profileMap, groups);
     },
-    [profiles, groups]
+    [profiles, profileMap, groups]
   );
 
   const handleSelectConversation = useCallback(
@@ -364,6 +364,7 @@ export const ModernMessenger = () => {
                       .reverse()
                       .map((message) => (
                         <MessageBubble
+                          key={message.id}
                           {...message}
                           profile={profileMap[message.from_id]}
                           profileMap={profileMap}

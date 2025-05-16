@@ -31,6 +31,7 @@ export const ChatHeader = ({
     : 1;
 
   const isMyConversation = conversation.conversation.peer.id === data?.id;
+  const isPrivateConversation = conversation.conversation.peer.id < 2000000000;
 
   return (
     <div className="bg-[#121218] h-16 flex items-center px-4 border-b border-[#2a2a3a]">
@@ -51,11 +52,15 @@ export const ChatHeader = ({
             <h2 className="text-sm font-medium">
               {isMyConversation ? <p>Избранные</p> : chatTitle}
             </h2>
-            {!isMyConversation && (
+            {!isPrivateConversation && (
               <Badge className="ml-2 bg-[#2a2a3a] text-gray-400 p-1 h-5 text-xs">
                 {membersCount} участников
               </Badge>
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-gray-400 text-xs">в сети</p>
+            <div className="w-[6px] h-[6px] bg-emerald-600 rounded-full" />
           </div>
         </div>
       </div>

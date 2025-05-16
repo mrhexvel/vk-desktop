@@ -4,7 +4,6 @@ import type { VKConversationItem, VKProfile } from "@/types/vk.type";
 import { Search } from "lucide-react";
 import { memo, useCallback, useState } from "react";
 import { ChatList } from "./ChatList";
-import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
@@ -30,14 +29,11 @@ const Sidebar = memo(
       if (!searchQuery.trim()) return conversations;
 
       return conversations.filter((conversation) => {
-        const chatName =
-          conversation.conversation.chat_settings?.title ||
-          `id${conversation.conversation.peer.id}`;
-
+        const chatName = conversation.conversation.chat_settings?.title;
         const lastMessageText = conversation.last_message.text || "";
 
         return (
-          chatName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          chatName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           lastMessageText.toLowerCase().includes(searchQuery.toLowerCase())
         );
       });
@@ -46,16 +42,9 @@ const Sidebar = memo(
     return (
       <aside className="w-80 border-r border-[#2a2a3a] flex flex-col bg-[#121218]">
         <div className="p-3 border-b border-[#2a2a3a]">
-          <p className="font-semibold">VK DESKTOP</p>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Поиск"
-              className="pl-9 bg-[#2a2a3a] border-none focus-visible:ring-1 focus-visible:ring-[#5d3f92]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="flex justify-between">
+            <p className="font-semibold">VK DESKTOP</p>
+            <Search className="h-4 w-4 text-gray-400" />
           </div>
         </div>
 

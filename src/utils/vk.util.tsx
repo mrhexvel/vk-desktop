@@ -67,7 +67,7 @@ export const parseTextWithLinks = (() => {
       return cache.get(cacheKey)!;
     }
 
-    const linkRegex = /\[(id|club\d+|\{[^}]+})\|([^[\]]*)\]/g;
+    const linkRegex = /\[(id\d+|club\d+|\{[^}]+})\|([^[\]]*)\]/g;
     const parts: (string | JSX.Element)[] = [];
     let lastIndex = 0;
 
@@ -76,10 +76,8 @@ export const parseTextWithLinks = (() => {
         parts.push(text.slice(lastIndex, index));
       }
 
-      console.log(link);
-
       let href = "";
-      if (link.startsWith("id")) {
+      if (link.startsWith("id") || link.startsWith("club")) {
         href = `https://vk.com/${link}`;
       } else if (link.startsWith("{")) {
         href = link.slice(1, -1);

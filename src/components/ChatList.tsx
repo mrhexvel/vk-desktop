@@ -112,14 +112,6 @@ const ChatList = memo(
                   <span className="font-medium text-sm truncate">
                     {chatName}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    {new Date(
-                      conversation.last_message.date * 1000
-                    ).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
                 </div>
 
                 <div className="flex justify-between items-center">

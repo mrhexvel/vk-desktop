@@ -112,12 +112,12 @@ export class VKApiService {
 
   static getConversationAvatar(
     conversation: VKConversationItem,
-    profiles: VKProfile[],
+    profiles: Record<number, VKProfile>,
     groups: VKGroup[]
   ): string | undefined {
     const { peer } = conversation.conversation;
     if (peer.type === "user") {
-      const profile = profiles.find((p) => p.id === peer.id);
+      const profile = profiles[peer.id];
       return profile?.photo_100;
     } else if (peer.type === "chat") {
       return conversation.conversation.chat_settings?.photo?.photo_100;
