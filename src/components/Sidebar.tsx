@@ -22,7 +22,7 @@ const Sidebar = memo(
     onSelect,
     getAvatar,
   }: SidebarProps) => {
-    const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery] = useState("");
 
     const filteredConversations = useCallback(() => {
       if (!conversations) return [];

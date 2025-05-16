@@ -39,7 +39,6 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
     },
-    frame: false,
   });
 
   win.webContents.on("did-finish-load", () => {
@@ -333,7 +332,7 @@ async function handleReadMessages(
   _eventType: number,
   _accessToken: string
 ) {
-  const peerId = eventData[0];
+  // const peerId = eventData[0];
   const messageId = eventData[1];
 
   pendingUpdates.readMessages.add(messageId);

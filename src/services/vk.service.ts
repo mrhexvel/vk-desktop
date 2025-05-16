@@ -185,4 +185,4 @@ declare global {
   }
 }
 
-export const vkService = new VKApiService(import.meta.env.VITE_ACCESS_TOKEN);
+export const vkService = new VKApiService(localStorage.getItem("access-token")!);
