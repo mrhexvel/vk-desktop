@@ -329,6 +329,7 @@ export const ModernMessenger = () => {
       <div className="w-full flex">
         <Sidebar
           conversations={conversations?.items}
+          profiles={conversations!.profiles}
           activeId={activeConversation?.conversation.peer.id}
           onSelect={handleSelectConversation}
           getAvatar={getAvatarMemo}

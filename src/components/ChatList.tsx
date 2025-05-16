@@ -1,22 +1,27 @@
 "use client";
 
 import { cn, cropText } from "@/lib/utils";
-import { useUserStore } from "@/store/userStore";
 import type { VKConversationItem, VKProfile } from "@/types/vk.type";
+import { getChatTitle } from "@/utils/vk.util";
 import { memo, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface ChatListProps {
   conversations: VKConversationItem[] | undefined;
+  profiles: VKProfile[];
   activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
   getAvatar: (conversation: VKConversationItem) => string | undefined;
 }
 
 const ChatList = memo(
-  ({ conversations, activeId, onSelect, getAvatar }: ChatListProps) => {
-    const user = useUserStore((state) => state.user);
-
+  ({
+    conversations,
+    profiles,
+    activeId,
+    onSelect,
+    getAvatar,
+  }: ChatListProps) => {
     const sortedConversations = useMemo(() => {
       if (!conversations) return [];
 
@@ -29,12 +34,9 @@ const ChatList = memo(
       const { peer } = conversation.conversation;
 
       if (peer.type === "user") {
-        const profile =
-          conversation.last_message.from_id === user?.id
-            ? { first_name: "Вы" }
-            : ({ first_name: `id${peer.id}` } as VKProfile);
+        const profile = getChatTitle(profiles, conversation);
 
-        return profile.first_name;
+        return profile || "Избранные";
       } else if (peer.type === "chat") {
         return (
           conversation.conversation.chat_settings?.title || `Чат ${peer.id}`

@@ -1,6 +1,6 @@
 "use client";
 
-import type { VKConversationItem } from "@/types/vk.type";
+import type { VKConversationItem, VKProfile } from "@/types/vk.type";
 import { Search } from "lucide-react";
 import { memo, useCallback, useState } from "react";
 import { ChatList } from "./ChatList";
@@ -9,13 +9,20 @@ import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
   conversations: VKConversationItem[] | undefined;
+  profiles: VKProfile[];
   activeId: number | undefined;
   onSelect: (conversation: VKConversationItem) => void;
   getAvatar: (conversation: VKConversationItem) => string | undefined;
 }
 
 const Sidebar = memo(
-  ({ conversations, activeId, onSelect, getAvatar }: SidebarProps) => {
+  ({
+    conversations,
+    profiles,
+    activeId,
+    onSelect,
+    getAvatar,
+  }: SidebarProps) => {
     const [searchQuery, setSearchQuery] = useState("");
 
     const filteredConversations = useCallback(() => {
@@ -55,6 +62,7 @@ const Sidebar = memo(
         <ScrollArea className="flex-1">
           <ChatList
             conversations={filteredConversations()}
+            profiles={profiles}
             activeId={activeId}
             onSelect={onSelect}
             getAvatar={getAvatar}
