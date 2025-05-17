@@ -16848,7 +16848,7 @@ ipcMain.handle(
           access_token: accessToken,
           v: "5.131",
           user_ids,
-          fields: "photo_100,online,sex,screen_name,online_info"
+          fields: "photo_100,photo_max_orig,online,sex,screen_name,online_info,about,status"
         }
       });
       if (response.data.error) {

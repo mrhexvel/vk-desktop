@@ -2,6 +2,7 @@ import { useUserStore } from "@/store/userStore";
 import { VKConversationItem, VKGroup, VKProfile } from "@/types/vk.type";
 import { getChatTitle } from "@/utils/vk.util";
 import { Info, NotepadText, Phone, Video } from "lucide-react";
+import { NavLink } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -38,6 +39,8 @@ export const ChatHeader = ({
       <div className="flex items-center">
         {isMyConversation ? (
           <div className="w-8 h-8 rounded-full mr-3 flex items-center justify-center bg-purple-400">
+            {" "}
+            ,
             <NotepadText />
           </div>
         ) : (
@@ -86,7 +89,9 @@ export const ChatHeader = ({
           className="rounded-full hover:bg-[#2a2a3a]"
           onClick={() => setShowRightSidebar(!showRightSidebar)}
         >
-          <Info className="h-5 w-5 text-gray-400" />
+          <NavLink to={`/user/${conversation.conversation.peer.id}`}>
+            <Info className="h-5 w-5 text-gray-400" />
+          </NavLink>
         </Button>
       </div>
     </div>

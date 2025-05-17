@@ -51,10 +51,8 @@ export const MessageBubble = ({
   }
 
   const displayName = profile.isGroup
-    ? `[club${profile.id * -1}|${profile.name}]`
-    : `[id${profile.id}|${profile.first_name} ${
-        profile.last_name || ""
-      }]`.trim();
+    ? profile.name
+    : `${profile.first_name} ${profile.last_name}`
 
   const photoAttachments = attachments.filter(
     (att) => att.type === "photo"

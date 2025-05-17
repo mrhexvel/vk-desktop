@@ -26,6 +26,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-lines-ellipsis": "^0.15.4",
+    "react-router-dom": "^7.6.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.6",
     "zustand": "^5.0.4"

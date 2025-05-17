@@ -351,8 +351,8 @@ export const ModernMessenger = () => {
                 getAvatar={getAvatarMemo}
               />
 
-              <ScrollArea className="flex-1 h-72 p-4">
-                <div className="flex flex-col gap-4 px-7">
+              <ScrollArea className="flex-1 h-72">
+                <div className="flex flex-col gap-4 px-12">
                   {isMessagesLoading ? (
                     <div className="flex justify-center items-center h-32">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>

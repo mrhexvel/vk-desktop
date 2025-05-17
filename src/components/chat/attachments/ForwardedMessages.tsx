@@ -14,8 +14,8 @@ export const ForwardedMessages = ({
     <div className="pl-2 my-2">
       {messages.map((message) => (
         <MessageBubble
-          key={message.id}
-          {...message}
+            {...message}
+            key={message.date}
           profile={profileMap[message.from_id]}
           profileMap={profileMap}
           isForwarded

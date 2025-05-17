@@ -2,8 +2,11 @@ export interface VKProfile {
   id: number;
   first_name: string;
   last_name?: string;
+  status?: string;
+  about?: string;
   photo_50?: string;
   photo_100?: string;
+  photo_max_orig?: string;
   online?: number;
   screen_name?: string;
   sex?: number;
