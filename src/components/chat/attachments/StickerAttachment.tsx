@@ -1,64 +1,29 @@
-import type { VKStickerMessageAttachment } from "@/types/vk.type";
-import Lottie from "lottie-react";
-import { useEffect, useState } from "react";
+"use client"
+
+import React from "react"
+import { getAllPossibleStickerUrls } from "../../../services/sticker-service"
 
 interface StickerAttachmentProps {
-  sticker: VKStickerMessageAttachment["sticker"];
+  sticker: any
 }
 
-export const StickerAttachment = ({ sticker }: StickerAttachmentProps) => {
-  const [animationData, setAnimationData] = useState(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<boolean>(false);
-
-  const stickerImage = sticker.images[2];
-  const hasAnimation = !!sticker.animation_url;
-
-  useEffect(() => {
-    if (hasAnimation) {
-      setIsLoading(true);
-      setError(false);
-
-      fetch(sticker.animation_url!)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setAnimationData(data);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error loading sticker animation:", err);
-          setError(true);
-          setIsLoading(false);
-        });
-    }
-  }, [sticker.animation_url, hasAnimation]);
+export const StickerAttachment: React.FC<StickerAttachmentProps> = ({ sticker }) => {
+  const [stickerUrlIndex, setStickerUrlIndex] = React.useState(0)
+  const stickerUrls = getAllPossibleStickerUrls(sticker)
+  const currentStickerUrl = stickerUrls[stickerUrlIndex] || "/colorful-sticker.png"
 
   return (
-    <div className="flex justify-center">
-      {hasAnimation && !isLoading && !error && animationData ? (
-        <div className="w-[200px] h-[200px]">
-          <Lottie
-            animationData={animationData}
-            loop={true}
-            autoplay={true}
-            style={{ width: "100%", height: "100%" }}
-            rendererSettings={{
-              preserveAspectRatio: "xMidYMid slice",
-            }}
-          />
-        </div>
-      ) : (
-        <img
-          src={stickerImage.url || "/placeholder.svg"}
-          alt="Sticker"
-          className="w-[200px] h-auto"
-        />
-      )}
+    <div className="flex justify-center max-w-[192px] max-h-[192px]">
+      <img
+        src={currentStickerUrl || "/placeholder.svg"}
+        alt="Sticker"
+        className="max-h-[192px] max-w-[192px] object-contain"
+        onError={() => {
+          if (stickerUrlIndex < stickerUrls.length - 1) {
+            setStickerUrlIndex(stickerUrlIndex + 1)
+          }
+        }}
+      />
     </div>
-  );
-};
+  )
+}

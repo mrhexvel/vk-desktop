@@ -4,12 +4,8 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron/simple";
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
   plugins: [
     react(),
     tailwindcss(),
@@ -24,12 +20,6 @@ export default defineConfig({
     }),
   ],
   server: {
-    proxy: {
-      "/vk": {
-        target: "https://api.vk.com",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/vk/, ""),
-      },
-    },
+    port: 80,
   },
 });

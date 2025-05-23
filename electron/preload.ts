@@ -1,64 +1,18 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer } from "electron"
 
-contextBridge.exposeInMainWorld("vkApi", {
-  getConversations: (accessToken: string) =>
-    ipcRenderer.invoke("vk:getConversations", accessToken),
+contextBridge.exposeInMainWorld("api", {
+  getAuthSession: () => ipcRenderer.invoke("get-auth-session"),
+  setAuthSession: (session: any) => ipcRenderer.invoke("set-auth-session", session),
+  clearAuthSession: () => ipcRenderer.invoke("clear-auth-session"),
 
-  execute: (accessToken: string, code: string) =>
-    ipcRenderer.invoke("vk:execute", accessToken, code),
+  callVKAPI: (method: string, params: Record<string, any>) => ipcRenderer.invoke("vk-api-request", method, params),
 
-  usersGet: (accessToken: string, user_ids?: string) =>
-    ipcRenderer.invoke("vk:users.get", accessToken, user_ids),
+  showNotification: (title: string, body: string) => ipcRenderer.invoke("show-notification", title, body),
 
-  groupsGetById: (accessToken: string, group_id: number) =>
-    ipcRenderer.invoke("vk:groups.getById", accessToken, group_id),
-
-  getHistory: (accessToken: string, peer_id: number) =>
-    ipcRenderer.invoke("vk:messages.getHistory", accessToken, peer_id),
-
-  getMessagesById: (accessToken: string, message_id: number) =>
-    ipcRenderer.invoke("vk:messages.getById", accessToken, message_id),
-
-  getLongPollServer: (accessToken: string) =>
-    ipcRenderer.invoke("vk:messages.getLongPollServer", accessToken),
-
-  startLongPolling: (accessToken: string) =>
-    ipcRenderer.invoke("vk:startLongPolling", accessToken),
-
-  stopLongPolling: () => ipcRenderer.invoke("vk:stopLongPolling"),
-
-  setActiveConversation: (conversationId: number | null) =>
-    ipcRenderer.invoke("vk:setActiveConversation", conversationId),
-
-  onNewMessage: (callback: (data: any) => void) => {
-    const listener = (_event: any, data: any) => {
-      callback(data);
-    };
-    ipcRenderer.on("vk:newMessage", listener);
-    return () => ipcRenderer.removeListener("vk:newMessage", listener);
+  openOAuthWindow: (url: string) => ipcRenderer.invoke("open-oauth-window", url),
+  onOAuthCallback: (callback: (url: string) => void) => {
+    const listener = (_: any, url: string) => callback(url)
+    ipcRenderer.on("oauth-callback", listener)
+    return () => ipcRenderer.removeListener("oauth-callback", listener)
   },
-
-  onUpdateConversations: (callback: () => void) => {
-    const listener = () => {
-      callback();
-    };
-    ipcRenderer.on("vk:updateConversations", listener);
-    return () => ipcRenderer.removeListener("vk:updateConversations", listener);
-  },
-
-  onUpdateMessageHistory: (callback: (peerId: number) => void) => {
-    const listener = (_event: any, peerId: number) => {
-      callback(peerId);
-    };
-    ipcRenderer.on("vk:updateMessageHistory", listener);
-    return () =>
-      ipcRenderer.removeListener("vk:updateMessageHistory", listener);
-  },
-
-  onTyping: (callback: (data: { userId: number; peerId: number }) => void) => {
-    const listener = (_event: any, data: { userId: number; peerId: number }) =>
-      callback(data);
-    ipcRenderer.on("vk:typing", listener);
-    return () => ipcRenderer.removeListener("vk:typing", listener);
-  },
-});
+})

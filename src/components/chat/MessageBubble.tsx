@@ -1,44 +1,42 @@
-import { cn } from "@/lib/utils";
-import { useUserStore } from "@/store/userStore";
-import type { VKAttachment, VKMessage, VKProfile } from "@/types/vk.type";
-import { parseTextWithLinks } from "@/utils/vk.util";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { ReplyBlock } from "./ReplyBlock";
-import { AudioMessage } from "./attachments/AudioAttachment";
+"use client";
+
+import type React from "react";
+import { cn, parseTextWithLinks } from "../../lib/utils";
+import type { MessageBubbleProps } from "../../types/components";
+import { formatTime } from "../../utils/formatters";
+import Avatar from "../UI/Avatar";
+import { AudioMessageAttachment } from "./attachments/AudioMessageAttachment";
 import { DocumentAttachment } from "./attachments/DocumentAttachment";
-import { ForwardedMessages } from "./attachments/ForwardedMessages";
 import { LinkAttachment } from "./attachments/LinkAttachment";
 import { PhotoAttachment } from "./attachments/PhotoAttachment";
 import { StickerAttachment } from "./attachments/StickerAttachment";
 import { VideoAttachment } from "./attachments/VideoAttachment";
-import { WallAttachment } from "./attachments/WallAttachment";
+import { ReplyBlock } from "./ReplyBlock";
 
-interface MessageBubbleProps extends VKMessage {
-  profile?: VKProfile;
-  profileMap?: Record<number, VKProfile>;
-  isForwarded?: boolean;
-}
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  grouped = false,
+}) => {
+  const { isOut, text, date, attachments, sender } = message;
 
-export const MessageBubble = ({
-  from_id,
-  text,
-  attachments,
-  profile,
-  reply_message,
-  date,
-  fwd_messages,
-  profileMap = {},
-  isForwarded = false,
-}: MessageBubbleProps) => {
-  const data = useUserStore((state) => state.user);
-  const isCurrentUser = from_id === data?.id;
-  const profiles = useUserStore((state) => state.profiles);
+  const isCurrentUser = isOut;
 
-  const replyProfile = reply_message
-    ? profiles[reply_message.from_id]
-    : undefined;
+  const photoAttachments =
+    attachments?.filter((att) => att.type === "photo") || [];
+  const stickerAttachment = attachments?.find((att) => att.type === "sticker");
+  const videoAttachments =
+    attachments?.filter((att) => att.type === "video") || [];
+  const docAttachments = attachments?.filter((att) => att.type === "doc") || [];
+  const linkAttachments =
+    attachments?.filter((att) => att.type === "link") || [];
+  const audioMessageAttachments =
+    attachments?.filter((att) => att.type === "audio_message") || [];
 
-  if (!profile) {
+  const displayName = sender
+    ? `${sender.firstName} ${sender.lastName}`
+    : "Неизвестный пользователь";
+
+  if (!sender && !isCurrentUser) {
     return (
       <div className="flex gap-3 max-w-[80%] self-start mb-2">
         <div className="h-8 w-8 mt-1 rounded-full bg-[#2a2a3a] animate-pulse"></div>
@@ -50,100 +48,80 @@ export const MessageBubble = ({
     );
   }
 
-  const displayName = profile.isGroup
-    ? profile.name
-    : `${profile.first_name} ${profile.last_name}`
-
-  const photoAttachments = attachments.filter(
-    (att) => att.type === "photo"
-  ) as VKAttachment[];
-  const stickerAttachment = attachments.find((att) => att.type === "sticker");
-  const audioMessageAttachment = attachments.find(
-    (att) => att.type === "audio_message"
-  );
-  const wallAttachments = attachments.filter(
-    (att) => att.type === "wall"
-  ) as VKAttachment[];
-  const documentAttachments = attachments.filter(
-    (att) => att.type === "doc"
-  ) as VKAttachment[];
-  const linkAttachments = attachments.filter(
-    (att) => att.type === "link"
-  ) as VKAttachment[];
-  const videoAttachments = attachments.filter(
-    (att) => att.type === "video"
-  ) as VKAttachment[];
-
   return (
     <div
       className={cn(
-        "flex gap-3 max-w-[70%]",
-        isCurrentUser ? "self-end" : "self-start"
+        "flex gap-3",
+        isCurrentUser ? "justify-end" : "justify-start",
+        grouped ? "mt-1" : "mt-4"
       )}
     >
-      {!isCurrentUser && !isForwarded && (
-        <Avatar className="h-8 w-8 mt-1 bg-[#2a2a3a]">
-          <AvatarImage
-            src={profile.photo_100 || "/placeholder.svg"}
-            alt={displayName}
-          />
-          <AvatarFallback>
-            {displayName?.substring(0, 2) || "UN"}
-          </AvatarFallback>
-        </Avatar>
+      {!isCurrentUser && (
+        <div className="w-8 flex-shrink-0">
+          {!grouped && (
+            <Avatar
+              src={sender?.photo || "/placeholder.svg"}
+              alt={displayName}
+              size="sm"
+            />
+          )}
+        </div>
       )}
 
-      <div className={cn("flex flex-col items-start")}>
-        {!isCurrentUser && !isForwarded && (
+      <div
+        className={cn(
+          "flex flex-col max-w-[70%]",
+          isCurrentUser ? "items-end" : "items-start"
+        )}
+      >
+        {!isCurrentUser && !grouped && sender && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium">
               {parseTextWithLinks(displayName)}
             </span>
             <span className="text-xs text-gray-400">
-              {new Date(date).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatTime(new Date(date))}
             </span>
-            {profile.id === 715616525 && !profile.isGroup && (
-              <span className="text-xs text-gray-400">Разработчик</span>
-            )}
           </div>
         )}
 
         <div
           className={cn(
-            "rounded-2xl p-2 break-words",
-            isCurrentUser ? "bg-[#5d3f92]" : "bg-[#2a2a3a]",
+            "rounded-2xl p-2 break-words word-wrap max-w-full overflow-hidden",
+            isCurrentUser ? "bg-[#6c5ce7]" : "bg-[#2d2447]",
             !text && stickerAttachment && "bg-transparent flex flex-col",
-            isForwarded && "bg-opacity-70"
+            !text &&
+              audioMessageAttachments.length > 0 &&
+              "bg-transparent flex flex-col"
           )}
         >
-          {reply_message && (
-            <ReplyBlock message={reply_message} profile={replyProfile} />
+          {message.reply_message && (
+            <ReplyBlock
+              message={message.reply_message}
+              profile={message.reply_message.sender}
+            />
           )}
 
-          {isForwarded && (
-            <div className="text-xs text-gray-400 mb-2 leading-0">
-              {parseTextWithLinks(displayName, true)},{" "}
-              {new Date(Date.now()).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+          {message.fwd_messages && message.fwd_messages.length > 0 && (
+            <div className="border-l-2 border-gray-500 pl-2 mb-2">
+              <div className="text-sm font-medium text-blue-400">
+                Пересланные сообщения
+              </div>
+              <div className="text-xs text-gray-400">
+                {message.fwd_messages.length}{" "}
+                {message.fwd_messages.length === 1
+                  ? "сообщение"
+                  : message.fwd_messages.length < 5
+                  ? "сообщения"
+                  : "сообщений"}
+              </div>
             </div>
           )}
 
           {text && (
-            <div className="whitespace-pre-wrap">
+            <div className="whitespace-pre-wrap text-sm text-white break-words overflow-wrap-anywhere max-w-full">
               {parseTextWithLinks(text)}
             </div>
-          )}
-
-          {fwd_messages && fwd_messages.length > 0 && (
-            <ForwardedMessages
-              messages={fwd_messages}
-              profileMap={profileMap}
-            />
           )}
 
           {photoAttachments.length > 0 && (
@@ -154,34 +132,36 @@ export const MessageBubble = ({
             <StickerAttachment sticker={stickerAttachment.sticker} />
           )}
 
-          {audioMessageAttachment &&
-            audioMessageAttachment.type === "audio_message" && (
-              <AudioMessage
-                isCurrentUser={isCurrentUser}
-                audioMessage={audioMessageAttachment.audio_message}
-              />
-            )}
-
-          {wallAttachments.length > 0 && (
-            <WallAttachment
-              attachments={wallAttachments}
-              profileMap={profileMap}
-            />
+          {videoAttachments.length > 0 && (
+            <VideoAttachment attachments={videoAttachments} />
           )}
 
-          {documentAttachments.length > 0 && (
-            <DocumentAttachment attachments={documentAttachments} />
+          {docAttachments.length > 0 && (
+            <DocumentAttachment attachments={docAttachments} />
           )}
 
           {linkAttachments.length > 0 && (
             <LinkAttachment attachments={linkAttachments} />
           )}
 
-          {videoAttachments.length > 0 && (
-            <VideoAttachment attachments={videoAttachments} />
+          {audioMessageAttachments.length > 0 && (
+            <AudioMessageAttachment
+              attachments={audioMessageAttachments}
+              isCurrentUser={isCurrentUser}
+            />
           )}
         </div>
+
+        {isCurrentUser && (
+          <div className="flex justify-end mt-1">
+            <span className="text-xs text-gray-400">
+              {formatTime(new Date(date))}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+export default MessageBubble;

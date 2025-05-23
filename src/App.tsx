@@ -1,68 +1,67 @@
-import React, { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
-import Loader from "./components/Loader";
-import { ModernMessenger } from "./components/ModernMessenger";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { User } from "./components/User";
-import { useConversationsStore } from "./store/useConversationsStore";
-import { useUserStore } from "./store/userStore";
+"use client"
+
+import type React from "react"
+import { useEffect } from "react"
+import AuthScreen from "./components/Auth/AuthScreen"
+import MainLayout from "./components/Layout/MainLayout"
+import { initLongPoll } from "./services/longpoll"
+import { useAuthStore } from "./store/authStore"
+import { useTranslation } from "./hooks/useTranslation"
+import { initStickerService, getStickerConfigs } from "./services/sticker-service"
+import { vkAPI } from "./services/vk-api-service"
 
 const App: React.FC = () => {
-  const isUserLoading = useUserStore((state) => state.isLoading);
-  const fetchUser = useUserStore((state) => state.fetchUser);
-
-  const token = localStorage.getItem("access-token");
-  const [inputToken, setInputToken] = useState<string>("");
-
-  const isConversationsLoading = useConversationsStore(
-    (state) => state.isLoading
-  );
-  const conversations = useConversationsStore((state) => state.conversations);
-  const fetchConversations = useConversationsStore(
-    (state) => state.fetchConversations
-  );
+  const { accessToken, loading, error } = useAuthStore()
+  const { t } = useTranslation()
 
   useEffect(() => {
-    if (token) {
-      fetchUser();
-      fetchConversations();
+    document.documentElement.classList.add("dark")
+  }, [])
+
+  useEffect(() => {
+    if (accessToken) {
+      vkAPI.clearCache()
+
+      initLongPoll()
+
+      initStickerService(accessToken).catch((err) => {
+        console.error("Failed to initialize sticker service:", err)
+      })
+
+      getStickerConfigs(accessToken)
+        .then((configs) => {
+          console.log("Sticker configs loaded:", configs)
+        })
+        .catch((err) => {
+          console.error("Failed to load sticker configs:", err)
+        })
     }
-  }, [fetchUser, fetchConversations, token]);
+  }, [accessToken])
 
-  const handleSaveToken = () => {
-    localStorage.setItem("access-token", inputToken);
-    setInputToken("");
-    window.location.reload();
-  };
-
-  if (!token) {
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 min-h-screen text-white">
-        <Input
-          type="text"
-          placeholder="Введите токен"
-          value={inputToken}
-          onChange={(e) => setInputToken(e.target.value)}
-          className="w-64"
-        />
-        <Button onClick={handleSaveToken} className="cursor-pointer">
-          Сохранить
-        </Button>
+      <div className="flex h-screen w-screen items-center justify-center bg-[#121218] vk-pattern-bg">
+        <div className="flex flex-col items-center animate-fade-in">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-var(--color-primary) border-t-transparent"></div>
+          <p className="mt-4 text-var(--color-muted-foreground)">{t("app.loading")}</p>
+        </div>
       </div>
-    );
+    )
   }
 
-  if ((isUserLoading || isConversationsLoading) && !conversations) {
-    return <Loader />;
+  if (error) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#121218] vk-pattern-bg">
+        <div className="text-center text-var(--color-muted-foreground) animate-fade-in">
+          <p className="text-lg">
+            {t("app.error")}: {error}
+          </p>
+        </div>
+      </div>
+    )
   }
 
-  return (
-    <Routes>
-      <Route path="/" element={<ModernMessenger />} />
-      <Route path="/user/:id" element={<User />} />
-    </Routes>
-  );
-};
+  return accessToken ? <MainLayout /> : <AuthScreen />
+}
 
-export default App;
+export default App

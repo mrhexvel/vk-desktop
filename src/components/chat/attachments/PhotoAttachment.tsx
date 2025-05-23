@@ -1,70 +1,73 @@
-"use client";
-
-import type { VKAttachment, VKPhotoAttachment } from "@/types/vk.type";
-import { useState } from "react";
+import type React from "react"
+import { cn } from "../../../lib/utils"
 
 interface PhotoAttachmentProps {
-  attachments: VKAttachment[];
+  attachments: any[]
 }
 
-export const PhotoAttachment = ({ attachments }: PhotoAttachmentProps) => {
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+export const PhotoAttachment: React.FC<PhotoAttachmentProps> = ({ attachments }) => {
+  if (attachments.length === 0) return null
 
-  const photos = attachments
-    .filter((att): att is VKPhotoAttachment => att.type === "photo")
-    .map((att) => {
-      const sizes = att.photo.sizes;
-      const mediumSize =
-        sizes.find((size) => size.type === "x") || sizes[sizes.length - 1];
-      return mediumSize.url;
-    });
+  const getPhotoUrl = (photo: any) => {
+    const sizes = photo.photo?.sizes || []
+    const preferredSizes = ["x", "y", "r", "q", "p"]
 
-  const getGridClass = () => {
-    switch (photos.length) {
-      case 1:
-        return "grid-cols-1";
-      case 2:
-        return "grid-cols-2";
-      case 3:
-        return "grid-cols-3";
-      default:
-        return "grid-cols-2";
+    for (const size of preferredSizes) {
+      const found = sizes.find((s: any) => s.type === size)
+      if (found) return found.url
     }
-  };
+
+    return sizes.length > 0 ? sizes[sizes.length - 1].url : null
+  }
+
+  if (attachments.length === 1) {
+    const photoUrl = getPhotoUrl(attachments[0])
+
+    return (
+      <div className="mt-2 rounded-lg overflow-hidden">
+        <img
+          src={photoUrl || "/placeholder.svg?height=200&width=200&query=photo"}
+          alt="Photo"
+          className="max-h-80 max-w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    )
+  }
 
   return (
-    <div className="mt-2">
-      <div className={`grid ${getGridClass()} gap-1`}>
-        {photos.map((photoUrl, index) => (
-          <div
-            key={index}
-            className="relative overflow-hidden rounded-lg cursor-pointer"
-            onClick={() => setSelectedPhoto(photoUrl)}
-          >
-            <img
-              src={photoUrl || "/placeholder.svg"}
-              alt={`Photo ${index + 1}`}
-              className="w-full h-auto object-cover rounded-lg"
-              style={{ maxHeight: photos.length === 1 ? "300px" : "150px" }}
-            />
-          </div>
-        ))}
+    <div className="mt-2 grid gap-1">
+      <div
+        className={cn(
+          "grid",
+          attachments.length === 2 && "grid-cols-2",
+          attachments.length === 3 && "grid-cols-3",
+          attachments.length >= 4 && "grid-cols-2 grid-rows-2",
+        )}
+      >
+        {attachments.slice(0, 4).map((attachment, index) => {
+          const photoUrl = getPhotoUrl(attachment)
+
+          return (
+            <div
+              key={index}
+              className={cn(
+                "aspect-square overflow-hidden rounded-md",
+                attachments.length === 3 && index === 0 && "col-span-3 row-span-1 aspect-video",
+              )}
+            >
+              <img
+                src={photoUrl || "/placeholder.svg?height=100&width=100&query=photo"}
+                alt="Photo"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          )
+        })}
       </div>
 
-      {selectedPhoto && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-3xl flex items-center justify-center z-50"
-          onClick={() => setSelectedPhoto(null)}
-        >
-          <div className="max-w-4xl max-h-screen p-4">
-            <img
-              src={selectedPhoto || "/placeholder.svg"}
-              alt="Full size"
-              className="max-w-full max-h-[90vh] object-contain"
-            />
-          </div>
-        </div>
-      )}
+      {attachments.length > 4 && <div className="text-xs text-gray-400 mt-1">+{attachments.length - 4} фото</div>}
     </div>
-  );
-};
+  )
+}

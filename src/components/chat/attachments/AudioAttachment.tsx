@@ -25,6 +25,7 @@ export const AudioMessage = ({
     (value) => value / Math.max(...audioMessage.waveform)
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const drawWaveform = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;

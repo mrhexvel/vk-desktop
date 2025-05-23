@@ -3,7 +3,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "vk-desktop",
   "asar": true,
-  "productName": "vk-desktop",
+  "productName": "VK DESKTOP",
   "directories": {
     "output": "release/${version}"
   },
