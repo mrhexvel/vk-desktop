@@ -238,13 +238,13 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
 
   return (
     <div className="flex h-full flex-col animate-fade-in">
-      <div className="flex items-center justify-between p-4 border-b border-var(--color-sidebar-border) bg-[var(--color-sidebar-accent)] bg-opacity-30 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-4 border-b border-[var(--color-sidebar-border)] bg-[var(--color-sidebar-accent)] bg-opacity-30 backdrop-blur-sm">
         <h3 className="text-base font-medium text-[var(--color-sidebar-foreground)]">
           {t("details.title")}
         </h3>
         <button
           onClick={onClose}
-          className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
+          className="text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
           aria-label={t("buttons.close")}
         >
           <svg
@@ -264,21 +264,21 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         </button>
       </div>
 
-      <div className="flex flex-col items-center p-6 border-b border-var(--color-sidebar-border) bg-gradient-to-b from-var(--color-sidebar-accent) to-transparent bg-opacity-10">
+      <div className="flex flex-col items-center p-6 border-b border-[var(--color-sidebar-border)] bg-gradient-to-b from-[var(--color-sidebar-accent)] to-transparent bg-opacity-10">
         <div className="relative mb-4 group">
           <Avatar
             src={selectedChat.avatar}
             size="lg"
-            className="border-2 border-var(--color-sidebar) transition-transform duration-300 group-hover:scale-105"
+            className="border-2 border-[var(--color-sidebar)] transition-transform duration-300 group-hover:scale-105"
           />
           {showOnlineStatus && (
-            <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-var(--color-sidebar) animate-pulse"></span>
+            <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-[var(--color-sidebar)] animate-pulse"></span>
           )}
         </div>
-        <h2 className="text-xl font-semibold text-var(--color-sidebar-foreground) mb-1">
+        <h2 className="text-xl font-semibold text-[var(--color-sidebar-foreground)] mb-1">
           {selectedChat.title}
         </h2>
-        <p className="text-sm text-var(--color-muted-foreground) flex items-center">
+        <p className="text-sm text-[var(--color-muted-foreground)] flex items-center">
           {selectedChat.type === "user" ? (
             <>
               {selectedChat.online ? (
@@ -293,7 +293,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
           ) : selectedChat.type === "chat" ? (
             <>
               <svg
-                className="w-4 h-4 mr-1 text-var(--color-muted-foreground)"
+                className="w-4 h-4 mr-1 text-[var(--color-muted-foreground)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -314,13 +314,13 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         </p>
       </div>
 
-      <div className="flex border-b border-var(--color-sidebar-border)">
+      <div className="flex border-b border-[var(--color-sidebar-border)]">
         <button
           className={cn(
             "flex-1 py-3 text-center text-sm font-medium transition-smooth relative",
             activeTab === "info"
-              ? "text-var(--color-sidebar-primary)"
-              : "text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground)"
+              ? "text-[var(--color-sidebar-primary)]"
+              : "text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)]"
           )}
           onClick={() => setActiveTab("info")}
         >
@@ -334,8 +334,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
             className={cn(
               "flex-1 py-3 text-center text-sm font-medium transition-smooth relative",
               activeTab === "members"
-                ? "text-var(--color-sidebar-primary)"
-                : "text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground)"
+                ? "text-[var(--color-sidebar-primary)]"
+                : "text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)]"
             )}
             onClick={() => setActiveTab("members")}
           >
@@ -349,8 +349,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
           className={cn(
             "flex-1 py-3 text-center text-sm font-medium transition-smooth relative",
             activeTab === "media"
-              ? "text-var(--color-sidebar-primary)"
-              : "text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground)"
+              ? "text-[var(--color-sidebar-primary)]"
+              : "text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)]"
           )}
           onClick={() => setActiveTab("media")}
         >
@@ -366,9 +366,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
           {activeTab === "info" && (
             <div className="p-4 space-y-4">
               <div className="bg-[var(--color-sidebar-accent)] bg-opacity-20 rounded-xl p-4 backdrop-blur-sm">
-                <h3 className="text-sm font-medium text-var(--color-sidebar-foreground) mb-2 flex items-center">
+                <h3 className="text-sm font-medium text-[var(--color-sidebar-foreground)] mb-2 flex items-center">
                   <svg
-                    className="w-4 h-4 mr-2 text-var(--color-sidebar-primary)"
+                    className="w-4 h-4 mr-2 text-[var(--color-sidebar-primary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -383,7 +383,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                   </svg>
                   {t("details.description")}
                 </h3>
-                <p className="text-sm text-var(--color-sidebar-foreground) bg-[var(--color-sidebar-accent)] bg-opacity-30 p-3 rounded-lg">
+                <p className="text-sm text-[var(--color-sidebar-foreground)] bg-[var(--color-sidebar-accent)] bg-opacity-30 p-3 rounded-lg">
                   {selectedChat.type === "chat"
                     ? t("details.noDescription")
                     : "Send messages and share media with this contact."}
@@ -394,7 +394,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <svg
-                      className="w-5 h-5 text-var(--color-sidebar-primary) mr-3"
+                      className="w-5 h-5 text-[var(--color-sidebar-primary)] mr-3"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -407,7 +407,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                       />
                     </svg>
-                    <span className="text-sm font-medium text-var(--color-sidebar-foreground)">
+                    <span className="text-sm font-medium text-[var(--color-sidebar-foreground)]">
                       {t("details.notifications")}
                     </span>
                   </div>
@@ -424,9 +424,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
 
               {isGroupChat && (
                 <div className="space-y-2 bg-[var(--color-sidebar-accent)] bg-opacity-20 rounded-xl p-4 backdrop-blur-sm">
-                  <h3 className="text-sm font-medium text-var(--color-sidebar-foreground) mb-3 flex items-center">
+                  <h3 className="text-sm font-medium text-[var(--color-sidebar-foreground)] mb-3 flex items-center">
                     <svg
-                      className="w-4 h-4 mr-2 text-var(--color-destructive)"
+                      className="w-4 h-4 mr-2 text-[var(--color-destructive)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -443,7 +443,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                   </h3>
                   <button
                     onClick={() => setShowLeaveConfirm(true)}
-                    className="flex w-full items-center rounded-lg p-3 text-left text-sm text-var(--color-destructive) hover:bg-[var(--color-accent)] transition-smooth bg-[var(--color-sidebar-accent)] bg-opacity-30"
+                    className="flex w-full items-center rounded-lg p-3 text-left text-sm text-[var(--color-destructive)] hover:bg-[var(--color-accent)] transition-smooth bg-[var(--color-sidebar-accent)] bg-opacity-30"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -463,7 +463,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                   </button>
                   <button
                     onClick={() => setShowClearHistoryConfirm(true)}
-                    className="flex w-full items-center rounded-lg p-3 text-left text-sm text-var(--color-destructive) hover:bg-[var(--color-accent)] transition-smooth bg-[var(--color-sidebar-accent)] bg-opacity-30"
+                    className="flex w-full items-center rounded-lg p-3 text-left text-sm text-[var(--color-destructive)] hover:bg-[var(--color-accent)] transition-smooth bg-[var(--color-sidebar-accent)] bg-opacity-30"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -489,9 +489,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
           {activeTab === "members" && isGroupChat && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-var(--color-sidebar-foreground) flex items-center">
+                <h3 className="text-sm font-medium text-[var(--color-sidebar-foreground)] flex items-center">
                   <svg
-                    className="w-4 h-4 mr-2 text-var(--color-sidebar-primary)"
+                    className="w-4 h-4 mr-2 text-[var(--color-sidebar-primary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -507,7 +507,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                   {t("details.members")} ({members.length})
                 </h3>
                 {isCurrentUserAdmin && (
-                  <button className="text-xs text-var(--color-sidebar-primary) hover:underline transition-smooth flex items-center">
+                  <button className="text-xs text-[var(--color-sidebar-primary)] hover:underline transition-smooth flex items-center">
                     <svg
                       className="w-4 h-4 mr-1"
                       fill="none"
@@ -529,8 +529,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-var(--color-primary) border-t-transparent"></div>
-                  <p className="text-sm text-var(--color-muted-foreground)">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent"></div>
+                  <p className="text-sm text-[var(--color-muted-foreground)]">
                     {t("app.loading")}
                   </p>
                 </div>
@@ -557,9 +557,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
           {activeTab === "media" && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-var(--color-sidebar-foreground) flex items-center">
+                <h3 className="text-sm font-medium text-[var(--color-sidebar-foreground)] flex items-center">
                   <svg
-                    className="w-4 h-4 mr-2 text-var(--color-sidebar-primary)"
+                    className="w-4 h-4 mr-2 text-[var(--color-sidebar-primary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -574,7 +574,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
                   </svg>
                   {t("details.sharedMedia")}
                 </h3>
-                <button className="text-xs text-var(--color-sidebar-primary) hover:underline transition-smooth flex items-center">
+                <button className="text-xs text-[var(--color-sidebar-primary)] hover:underline transition-smooth flex items-center">
                   <svg
                     className="w-4 h-4 mr-1"
                     fill="none"

@@ -1,7 +1,9 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { cn, parseTextWithLinks } from "@/lib/utils";
-import type { MessageBubbleProps } from "@/types/components";
+import { Message } from "@/types/chat";
 import { formatTime } from "@/utils/formatters";
 import type React from "react";
+import { useState } from "react";
 import Avatar from "../ui/Avatar";
 import { AudioMessageAttachment } from "./attachments/AudioMessageAttachment";
 import { DocumentAttachment } from "./attachments/DocumentAttachment";
@@ -11,12 +13,23 @@ import { StickerAttachment } from "./attachments/StickerAttachment";
 import { VideoAttachment } from "./attachments/VideoAttachment";
 import { ReplyBlock } from "./ReplyBlock";
 
+interface MessageBubbleProps {
+  message: Message;
+  grouped?: boolean;
+  isHighlighted?: boolean;
+  onReplyClick?: (messageId: number) => void;
+  onReplyToMessage?: (message: Message) => void;
+}
+
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   grouped = false,
   isHighlighted = false,
   onReplyClick,
+  onReplyToMessage,
 }) => {
+  const { t } = useTranslation();
+  const [showActions, setShowActions] = useState(false);
   const { isOut, text, date, attachments, sender } = message;
 
   const isCurrentUser = isOut;
@@ -36,6 +49,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     ? `${sender.firstName} ${sender.lastName}`
     : "Неизвестный пользователь";
 
+  const handleReply = () => {
+    if (onReplyToMessage) {
+      onReplyToMessage(message);
+    }
+    setShowActions(false);
+  };
+
+  const handleCopyText = () => {
+    if (text) {
+      navigator.clipboard.writeText(text);
+    }
+    setShowActions(false);
+  };
+
   if (!sender && !isCurrentUser) {
     return (
       <div className="flex gap-3 max-w-[80%] self-start mb-2">
@@ -51,11 +78,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   return (
     <div
       className={cn(
-        "flex gap-3",
+        "group relative flex gap-3",
         isCurrentUser ? "justify-end" : "justify-start",
         grouped ? "mt-1" : "mt-4"
       )}
       id={`message-${message.id}`}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
     >
       {!isCurrentUser && (
         <div className="w-8 flex-shrink-0">
@@ -71,7 +100,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       <div
         className={cn(
-          "flex flex-col max-w-[70%]",
+          "flex flex-col max-w-[70%] relative",
           isCurrentUser ? "items-end" : "items-start"
         )}
       >
@@ -88,7 +117,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         <div
           className={cn(
-            "rounded-2xl p-2 break-words word-wrap max-w-full overflow-hidden",
+            "rounded-2xl p-2 break-words word-wrap max-w-full overflow-hidden relative",
             isCurrentUser ? "bg-[#6c5ce7]" : "bg-[#2d2447]",
             !text && stickerAttachment && "bg-transparent flex flex-col",
             !text &&
@@ -155,6 +184,59 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             />
           )}
         </div>
+
+        {showActions && (
+          <div
+            className={cn(
+              "absolute top-0 flex items-center gap-1 bg-[var(--color-card)] rounded-lg shadow-lg border border-[var(--color-border)] p-1 z-10 animate-scale-in",
+              isCurrentUser ? "-left-20" : "-right-20"
+            )}
+          >
+            <button
+              onClick={handleReply}
+              className="p-2 text-[var(--color-muted-foreground)] hover:text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)] rounded-md transition-smooth cursor-pointer"
+              title={t("messages.reply")}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                />
+              </svg>
+            </button>
+
+            {text && (
+              <button
+                onClick={handleCopyText}
+                className="p-2 text-[var(--color-muted-foreground)] hover:text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)] rounded-md transition-smooth cursor-pointer"
+                title={t("buttons.copy")}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
 
         {isCurrentUser && (
           <div className="flex justify-end mt-1">

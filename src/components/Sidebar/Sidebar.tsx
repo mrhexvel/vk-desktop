@@ -21,11 +21,11 @@ const Sidebar: React.FC = () => {
   return (
     <div className="flex flex-col h-full animate-fade-in px-2">
       <div className="p-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-var(--color-sidebar-foreground)">
+        <h1 className="text-lg font-semibold text-[var(--color-sidebar-foreground)]">
           {t("sidebar.title")}
         </h1>
         <div className="flex items-center">
-          <button className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-1 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift">
+          <button className="text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] p-1 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
               <div className="h-8 w-8 animate-spin rounded-full"></div>
             </div>
           ) : filteredChats.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-var(--color-muted-foreground) text-sm">
+            <div className="flex h-full items-center justify-center text-[var(--color-muted-foreground)] text-sm">
               {t("sidebar.noChats")}
             </div>
           ) : (
@@ -67,10 +67,10 @@ const Sidebar: React.FC = () => {
         </ScrollArea>
       </div>
 
-      <div className="p-4 border-t border-var(--color-sidebar-border)">
+      <div className="p-4 border-t border-[var(--color-sidebar-border)]">
         <button
           onClick={logout}
-          className="w-full flex items-center justify-center px-4 py-2 text-sm text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) hover:bg-[var(--color-sidebar-accent)] rounded-lg transition-smooth hover-lift"
+          className="w-full flex items-center justify-center px-4 py-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-accent)] rounded-lg transition-smooth hover-lift"
         >
           <svg
             className="w-4 h-4 mr-2"

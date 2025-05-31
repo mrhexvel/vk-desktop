@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
-import { VKPhotoAttachment } from "@/types/vk.type";
+import { VKMessageAttachmentPhoto } from "@/types/vk-api";
 import type React from "react";
 
 interface PhotoAttachmentProps {
-  attachments: VKPhotoAttachment[];
+  attachments: VKMessageAttachmentPhoto[];
 }
 
 export const PhotoAttachment: React.FC<PhotoAttachmentProps> = ({
@@ -11,7 +11,7 @@ export const PhotoAttachment: React.FC<PhotoAttachmentProps> = ({
 }) => {
   if (attachments.length === 0) return null;
 
-  const getPhotoUrl = (photo: VKPhotoAttachment) => {
+  const getPhotoUrl = (photo: VKMessageAttachmentPhoto) => {
     const sizes = photo.photo?.sizes || [];
     const preferredSizes = ["x", "y", "r", "q", "p"];
 

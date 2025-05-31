@@ -74,10 +74,10 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center">
-            <p className="text-sm font-medium text-var(--color-card-foreground) truncate">
+            <p className="text-sm font-medium text-[var(--color-card-foreground)] truncate">
               {displayName}
               {isCurrentUser && (
-                <span className="ml-1 text-xs text-var(--color-muted-foreground)">
+                <span className="ml-1 text-xs text-[var(--color-muted-foreground)]">
                   {t("details.you")}
                 </span>
               )}
@@ -88,12 +88,12 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
               </span>
             )}
             {isAdmin && !isCreator && (
-              <span className="ml-2 rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs text-var(--color-muted-foreground)">
+              <span className="ml-2 rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs text-[var(--color-muted-foreground)]">
                 {t("details.admin")}
               </span>
             )}
           </div>
-          <p className="text-xs text-var(--color-muted-foreground) flex items-center">
+          <p className="text-xs text-[var(--color-muted-foreground)] flex items-center">
             {member.online ? (
               <>
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5"></span>
@@ -110,8 +110,8 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
           className={cn(
             "p-2 rounded-full transition-smooth",
             showActions
-              ? "text-var(--color-card-foreground) bg-[var(--color-muted)]"
-              : "text-var(--color-muted-foreground) opacity-0 group-hover:opacity-100 hover:text-var(--color-card-foreground) hover:bg-[var(--color-muted)]"
+              ? "text-[var(--color-card-foreground)] bg-[var(--color-muted)]"
+              : "text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 hover:text-[var(--color-card-foreground)] hover:bg-[var(--color-muted)]"
           )}
         >
           <svg
@@ -125,14 +125,14 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
         </button>
 
         {showActions && (
-          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg bg-[var(--color-card)] shadow-lg ring-1 ring-var(--color-border) glass-effect animate-scale-in">
+          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg bg-[var(--color-card)] shadow-lg ring-1 ring-[var(--color-border)] glass-effect animate-scale-in">
             <div className="py-1">
               <button
                 onClick={() => {
                   if (onViewProfile) onViewProfile(member.id);
                   setShowActions(false);
                 }}
-                className="flex w-full items-center px-4 py-2 text-left text-sm text-var(--color-card-foreground) hover:bg-[var(--color-accent)]"
+                className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -157,7 +157,7 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
                     if (onSendMessage) onSendMessage(member.id);
                     setShowActions(false);
                   }}
-                  className="flex w-full items-center px-4 py-2 text-left text-sm text-var(--color-card-foreground) hover:bg-[var(--color-accent)]"
+                  className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)]"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -179,14 +179,14 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
 
               {canManage && !isCurrentUser && !isCreator && (
                 <>
-                  <div className="border-t border-var(--color-border) my-1"></div>
+                  <div className="border-t border-[var(--color-border)] my-1"></div>
                   {isAdmin ? (
                     <button
                       onClick={() => {
                         if (onRemoveAdmin) onRemoveAdmin(member.id);
                         setShowActions(false);
                       }}
-                      className="flex w-full items-center px-4 py-2 text-left text-sm text-var(--color-card-foreground) hover:bg-[var(--color-accent)]"
+                      className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)]"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -210,7 +210,7 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
                         if (onMakeAdmin) onMakeAdmin(member.id);
                         setShowActions(false);
                       }}
-                      className="flex w-full items-center px-4 py-2 text-left text-sm text-var(--color-card-foreground) hover:bg-[var(--color-accent)]"
+                      className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)]"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -231,7 +231,7 @@ const ChatMemberItem: React.FC<ChatMemberItemProps> = ({
                   )}
                   <button
                     onClick={() => setShowRemoveConfirm(true)}
-                    className="flex w-full items-center px-4 py-2 text-left text-sm text-var(--color-destructive) hover:bg-[var(--color-accent)]"
+                    className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-destructive)] hover:bg-[var(--color-accent)]"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

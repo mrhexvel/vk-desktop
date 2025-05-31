@@ -35,6 +35,7 @@ export const en: Translations = {
     selectSubtitle: "Choose a conversation from the sidebar",
     noMessages: "No messages",
     inputPlaceholder: "Type a message...",
+    replyPlaceholder: "Reply...",
     online: "online",
     offline: "offline",
     members: "members",
@@ -120,6 +121,7 @@ export const en: Translations = {
     remove: "Remove",
     invite: "Invite",
     more: "More",
+    copy: "Copy",
   },
   status: {
     online: "online",

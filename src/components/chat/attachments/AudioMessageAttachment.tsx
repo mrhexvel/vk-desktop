@@ -1,9 +1,9 @@
-import { VKAudioMessageAttachment } from "@/types/vk.type";
+import { VKMessageAttachmentAudioMessage } from "@/types/vk-api";
 import type React from "react";
 import { AudioMessage } from "./AudioMessage";
 
 interface AudioMessageAttachmentProps {
-  attachments: VKAudioMessageAttachment[];
+  attachments: VKMessageAttachmentAudioMessage[];
   isCurrentUser: boolean;
 }
 

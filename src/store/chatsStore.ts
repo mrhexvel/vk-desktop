@@ -29,7 +29,8 @@ interface ChatsState {
   sendMessage: (
     chatId: number,
     text: string,
-    attachments?: string[]
+    attachments?: string[],
+    replyToMessageId?: number
   ) => Promise<void>;
   addMessage: (chatId: number, message: Message) => void;
   updateMessage: (chatId: number, messageId: number, message: Message) => void;
@@ -295,14 +296,28 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
     }
   },
 
-  sendMessage: async (chatId: number, text: string, attachments = []) => {
+  sendMessage: async (
+    chatId: number,
+    text: string,
+    attachments = [],
+    replyToMessageId?: number
+  ) => {
     try {
-      const response = await vkAPI.directRequest<number>("messages.send", {
+      const params: Record<string, string | number> = {
         peer_id: chatId,
         message: text,
-        attachment: attachments.join(","),
         random_id: Math.floor(Math.random() * 1000000),
-      });
+      };
+
+      if (attachments.length > 0) {
+        params.attachment = attachments.join(",");
+      }
+
+      if (replyToMessageId) {
+        params.reply_to = replyToMessageId;
+      }
+
+      const response = await vkAPI.directRequest("messages.send", params);
 
       if (response) {
         const newMessage: Message = {
@@ -318,6 +333,11 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
             type: "link",
             link: { url: att },
           })) as VKMessageAttachment[],
+          reply_message: replyToMessageId
+            ? (get().messages[chatId]?.find(
+                (msg) => msg.id === replyToMessageId
+              ) as Message)
+            : undefined,
         };
 
         get().addMessage(chatId, newMessage);
@@ -444,12 +464,12 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
       if (response && response.items) {
         const profiles = response.profiles || [];
         const profilesMap = new Map();
-        profiles.forEach((profile: any) => {
+        profiles.forEach((profile) => {
           profilesMap.set(profile.id, profile);
         });
 
         const membersList: ChatMember[] = response.items
-          .map((item: any) => {
+          .map((item) => {
             const profile = profilesMap.get(item.member_id);
             if (!profile) return null;
 

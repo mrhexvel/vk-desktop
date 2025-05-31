@@ -1,8 +1,9 @@
+import { VKMessageAttachmentVideo } from "@/types/vk-api";
 import { VKVideoAttachment } from "@/types/vk.type";
 import type React from "react";
 
 interface VideoAttachmentProps {
-  attachments: VKVideoAttachment[];
+  attachments: VKMessageAttachmentVideo[];
 }
 
 export const VideoAttachment: React.FC<VideoAttachmentProps> = ({

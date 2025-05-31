@@ -74,13 +74,13 @@ export const Modal: React.FC<ModalProps> = ({
           sizeClasses
         )}
       >
-        <div className="flex items-center justify-between border-b border-var(--color-border) pb-3">
-          <h3 className="text-lg font-semibold text-var(--color-card-foreground)">
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
+          <h3 className="text-lg font-semibold text-[var(--color-card-foreground)]">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-var(--color-muted-foreground) hover:bg-[var(--color-accent)] hover:text-var(--color-card-foreground) transition-smooth"
+            className="rounded-full p-1 text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-card-foreground)] transition-smooth"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +100,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
         <div className="py-4">{children}</div>
         {footer && (
-          <div className="border-t border-var(--color-border) pt-3">
+          <div className="border-t border-[var(--color-border)] pt-3">
             {footer}
           </div>
         )}
@@ -143,7 +143,7 @@ export const ConfirmModal: React.FC<{
       <div className="flex justify-end space-x-2">
         <button
           onClick={onClose}
-          className="rounded-lg border border-var(--color-border) px-4 py-2 text-sm font-medium text-var(--color-muted-foreground) hover:bg-[var(--color-accent)] hover:text-var(--color-card-foreground) transition-smooth"
+          className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-card-foreground)] transition-smooth"
         >
           {cancelText || t("buttons.cancel")}
         </button>

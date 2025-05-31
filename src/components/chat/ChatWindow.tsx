@@ -1,6 +1,7 @@
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuthStore } from "@/store/authStore";
 import { useChatsStore } from "@/store/chatsStore";
+import { Message } from "@/types/chat";
 import { NotebookText } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -29,6 +30,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [highlightedMessageId, setHighlightedMessageId] = useState<
     number | null
   >(null);
+  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
 
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -66,6 +68,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setShowScrollButton(!atBottom && chatMessages.length > 0);
   }, [chatMessages.length, getScrollViewport]);
 
+  const handleReplyToMessage = useCallback((message: Message) => {
+    setReplyToMessage(message);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyToMessage(null);
+  }, []);
+
   const scrollToBottom = useCallback(
     (smooth = true) => {
       const viewport = getScrollViewport();
@@ -86,8 +96,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const scrollToMessage = useCallback(
     (messageId: number) => {
-      console.log("Scrolling to message:", messageId);
-
       const messageElement = document.getElementById(`message-${messageId}`);
       const viewport = getScrollViewport();
 
@@ -113,10 +121,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           setHighlightedMessageId(null);
         }, 2000);
       } else {
-        console.warn(
-          "Could not scroll to message - missing element or viewport"
-        );
-
         if (messageElement) {
           setHighlightedMessageId(messageId);
           messageElement.scrollIntoView({
@@ -140,6 +144,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   useEffect(() => {
     if (selectedChatId) {
+      setReplyToMessage(null);
       setTimeout(() => {
         scrollToBottom(false);
         setIsAtBottom(true);
@@ -182,7 +187,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="flex h-full items-center justify-center animate-fade-in">
         <div className="text-center">
           <div className="mb-4 flex justify-center">
-            <div className="h-16 w-16 rounded-full bg-gradient-primary flex items-center justify-center animate-pulse-custom">
+            <div className="h-16 w-16 rounded-full flex items-center justify-center animate-pulse-custom">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -199,10 +204,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               </svg>
             </div>
           </div>
-          <p className="text-lg text-var(--color-muted-foreground)">
+          <p className="text-lg text-[var(--color-muted-foreground)]">
             {t("chat.selectPlaceholder")}
           </p>
-          <p className="text-sm text-var(--color-muted-foreground) mt-2">
+          <p className="text-sm text-[var(--color-muted-foreground)] mt-2">
             {t("chat.selectSubtitle")}
           </p>
         </div>
@@ -212,7 +217,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <div className="flex h-full flex-col animate-fade-in">
-      <div className="flex items-center justify-between bg-var(--color-sidebar) px-4 py-3 border-b border-var(--color-sidebar-border) glass-effect">
+      <div className="flex items-center justify-between bg-[var(--color-sidebar)] px-4 py-3 border-b border-[var(--color-sidebar-border)]">
         <div className="flex items-center">
           {selectedChat.id === userId ? (
             <div className="p-2 mr-3 rounded-full bg-purple-400">
@@ -227,11 +232,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             />
           )}
           <div>
-            <h2 className="text-base font-medium text-var(--color-sidebar-foreground)">
+            <h2 className="text-base font-medium text-[var(--color-sidebar-foreground)]">
               {selectedChat.title}
             </h2>
             {selectedChat.id !== userId && (
-              <p className="text-xs text-var(--color-muted-foreground)">
+              <p className="text-xs text-[var(--color-muted-foreground)]">
                 {selectedChat.type === "user"
                   ? selectedChat.online
                     ? t("status.online")
@@ -247,7 +252,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
         <div className="flex items-center space-x-3">
           <button
-            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift"
+            className="text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
             title={t("buttons.call")}
           >
             <svg
@@ -266,7 +271,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </svg>
           </button>
           <button
-            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift"
+            className="text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
             title={t("buttons.video")}
           >
             <svg
@@ -286,9 +291,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </button>
           <button
             onClick={toggleDetails}
-            className={`text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift ${
+            className={`text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift ${
               showDetails
-                ? "bg-var(--color-sidebar-accent) text-var(--color-sidebar-foreground)"
+                ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-foreground)]"
                 : ""
             }`}
             title={t("buttons.info")}
@@ -313,7 +318,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               const { logout } = useAuthStore.getState();
               logout();
             }}
-            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift"
+            className="text-[var(--color-muted-foreground)] hover:text-[var(--color-sidebar-foreground)] p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
             title={t("sidebar.logout")}
           >
             <svg
@@ -340,10 +345,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           ref={scrollAreaRef}
           onScroll={handleScroll}
         >
-          <div className="p-4">
+          <div className="p-4 gradient-bg">
             {loadingMessages ? (
               <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-var(--color-primary) border-t-transparent"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent"></div>
               </div>
             ) : (
               <>
@@ -351,6 +356,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   messages={chatMessages}
                   highlightedMessageId={highlightedMessageId}
                   onReplyClick={scrollToMessage}
+                  onReplyToMessage={handleReplyToMessage}
                 />
                 <div ref={messagesEndRef} />
               </>
@@ -361,7 +367,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {showScrollButton && (
           <button
             onClick={() => scrollToBottom(true)}
-            className="fixed bottom-20 right-6 z-50 h-12 w-12 rounded-full bg-var(--color-primary) text-white shadow-lg hover:bg-opacity-90 transition-all duration-300 flex items-center justify-center animate-scale-in hover:scale-110 cursor-pointer"
+            className="fixed bottom-20 right-6 z-50 h-12 w-12 rounded-full bg-[var(--color-primary)] text-white shadow-lg hover:bg-opacity-90 transition-all duration-300 flex items-center justify-center animate-scale-in hover:scale-110 cursor-pointer"
             title={t("buttons.scrollToBottom")}
             style={{
               position: "absolute",
@@ -388,7 +394,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
       </div>
 
-      <ChatInput chatId={selectedChatId} />
+      <ChatInput
+        chatId={selectedChatId}
+        replyToMessage={replyToMessage}
+        onCancelReply={handleCancelReply}
+      />
     </div>
   );
 };

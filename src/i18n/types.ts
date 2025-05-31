@@ -33,6 +33,7 @@ export interface Translations {
     selectSubtitle: string;
     noMessages: string;
     inputPlaceholder: string;
+    replyPlaceholder: string;
     online: string;
     offline: string;
     members: string;
@@ -118,6 +119,7 @@ export interface Translations {
     remove: string;
     invite: string;
     more: string;
+    copy: string;
   };
   status: {
     online: string;

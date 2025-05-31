@@ -8,19 +8,21 @@ interface MessageListProps {
   messages: Message[];
   highlightedMessageId?: number | null;
   onReplyClick?: (messageId: number) => void;
+  onReplyToMessage?: (message: Message) => void;
 }
 
 const MessageList: React.FC<MessageListProps> = ({
   messages,
   highlightedMessageId,
   onReplyClick,
+  onReplyToMessage,
 }) => {
   const { t } = useTranslation();
 
   if (messages.length === 0) {
     return (
       <div className="flex h-full items-center justify-center animate-fade-in">
-        <p className="text-lg text-var(--color-muted-foreground)">
+        <p className="text-lg text-[var(--color-muted-foreground)]">
           {t("chat.noMessages")}
         </p>
       </div>
@@ -45,7 +47,7 @@ const MessageList: React.FC<MessageListProps> = ({
       {Object.entries(groupedMessages).map(([dateKey, messagesGroup]) => (
         <div key={dateKey} className="space-y-1 animate-fade-in">
           <div className="mb-2 flex justify-center">
-            <div className="rounded-full bg-var(--color-muted) bg-opacity-70 px-3 py-1 text-xs text-var(--color-muted-foreground) glass-effect">
+            <div className="rounded-full bg-[var(--color-muted)] bg-opacity-70 px-3 py-1 text-xs text-[var(--color-muted-foreground)] glass-effect">
               {formatMessageDate(new Date(messagesGroup[0].date))}
             </div>
           </div>
@@ -66,6 +68,7 @@ const MessageList: React.FC<MessageListProps> = ({
                   grouped={isGrouped!}
                   isHighlighted={highlightedMessageId === message.id}
                   onReplyClick={onReplyClick}
+                  onReplyToMessage={onReplyToMessage}
                 />
               );
             })}

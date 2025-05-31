@@ -78,13 +78,13 @@ export const ReplyBlock: React.FC<ReplyBlockProps> = ({
   return (
     <div
       className={cn(
-        "border-l-2 border-var(--color-border) pl-2 mb-2 opacity-80 transition-all duration-200",
+        "border-l-2 border-[var(--color-border)] pl-2 mb-2 opacity-80 transition-all duration-200",
         onReplyClick &&
           "cursor-pointer hover:opacity-100 hover:border-[#6c5ce7] hover:bg-white/5 rounded-r-md pr-2 py-1"
       )}
       onClick={handleClick}
     >
-      <div className="text-sm font-medium text-var(--color-primary)">
+      <div className="text-sm font-medium text-[var(--color-primary)]">
         {displayName}
       </div>
       <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export const ReplyBlock: React.FC<ReplyBlockProps> = ({
         )}
         <div
           className={cn(
-            "text-sm text-var(--color-muted-foreground) truncate",
+            "text-sm text-[var(--color-muted-foreground)] truncate",
             attachmentPreview ? "max-w-[200px]" : "max-w-[250px]"
           )}
         >
