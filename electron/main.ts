@@ -69,7 +69,7 @@ function createWindow() {
       webSecurity: false,
       nodeIntegration: false,
     },
-    frame: false,
+    // frame: false,
   });
 
   win.webContents.on("did-finish-load", () => {

@@ -2,7 +2,6 @@ export const MESSENGER_APP_ID = "51453752";
 export const MESSENGER_APP_SECRET = "4UyuCUsdK8pVCNoeQuGi";
 export const MESSENGER_APP_SCOPE = 1454174;
 
-// Параметры для OAuth авторизации
 export interface VKOAuthParams {
   clientId: string;
   redirectUri: string;
@@ -13,7 +12,6 @@ export interface VKOAuthParams {
   revoke?: 0 | 1;
 }
 
-// Результат авторизации
 export interface VKOAuthResult {
   accessToken: string;
   expiresIn: number;
@@ -22,9 +20,7 @@ export interface VKOAuthResult {
   email?: string;
 }
 
-// Полный список возможных прав доступа с их битовыми значениями
 export const VK_SCOPES = {
-  // Базовые права
   NOTIFY: 1,
   FRIENDS: 2,
   PHOTOS: 4,
@@ -46,9 +42,7 @@ export const VK_SCOPES = {
   MARKET: 134217728,
 };
 
-// Функция для создания URL авторизации
 export function createOAuthUrl(params: VKOAuthParams): string {
-  // Используем числовое значение scope для максимальных прав
   const defaultScope = MESSENGER_APP_SCOPE;
 
   const queryParams = new URLSearchParams({
@@ -68,18 +62,14 @@ export function createOAuthUrl(params: VKOAuthParams): string {
   return `https://oauth.vk.com/authorize?${queryParams.toString()}`;
 }
 
-// Функция для парсинга результата авторизации из URL
 export function parseOAuthResult(url: string): VKOAuthResult | null {
   try {
-    // Проверяем, содержит ли URL фрагмент с токеном
     if (!url.includes("access_token=")) {
       return null;
     }
 
-    // Извлекаем фрагмент URL (часть после #)
     const hashParams = new URLSearchParams(url.split("#")[1]);
 
-    // Получаем параметры
     const accessToken = hashParams.get("access_token");
     const expiresIn = Number.parseInt(hashParams.get("expires_in") || "0", 10);
     const userId = Number.parseInt(hashParams.get("user_id") || "0", 10);
@@ -103,7 +93,6 @@ export function parseOAuthResult(url: string): VKOAuthResult | null {
   }
 }
 
-// Интерфейс для результата запроса пользователя
 export interface VKUserResponse {
   id: number;
   first_name: string;
@@ -114,7 +103,6 @@ export interface VKUserResponse {
   [key: string]: unknown;
 }
 
-// Функция для получения информации о пользователе
 export async function fetchUserInfo(
   accessToken: string,
   userId: number
@@ -143,7 +131,6 @@ export async function fetchUserInfo(
   }
 }
 
-// Функция для проверки прав доступа
 export async function checkAccessPermissions(
   accessToken: string
 ): Promise<string[]> {
@@ -164,13 +151,11 @@ export async function checkAccessPermissions(
       throw new Error("Empty response from API");
     }
 
-    // Преобразуем битовую маску в список прав
     const permissionsMask = data.response;
     const grantedPermissions: string[] = [];
 
     console.log("Permissions mask:", permissionsMask);
 
-    // Маппинг битовых флагов на названия прав
     const permissionBits: Record<string, number> = {
       notify: VK_SCOPES.NOTIFY,
       friends: VK_SCOPES.FRIENDS,
@@ -193,7 +178,6 @@ export async function checkAccessPermissions(
       market: VK_SCOPES.MARKET,
     };
 
-    // Проверяем каждое право
     for (const [permission, bit] of Object.entries(permissionBits)) {
       if ((permissionsMask & bit) === bit) {
         grantedPermissions.push(permission);
@@ -208,7 +192,6 @@ export async function checkAccessPermissions(
   }
 }
 
-// Интерфейс для информации о стикере
 export interface VKStickerInfo {
   words: string[];
   user_stickers?: Array<{
@@ -218,7 +201,6 @@ export interface VKStickerInfo {
   [key: string]: unknown;
 }
 
-// Функция для получения информации о стикерах
 export async function getStickerInfo(
   accessToken: string,
   stickerId: number,

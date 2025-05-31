@@ -2,6 +2,12 @@ import type { VKMessageAction, VKMessageAttachment } from "./vk-api";
 
 export type ChatType = "user" | "chat" | "group";
 export type ChatMemberRole = "creator" | "admin" | "member";
+export type MessageSendStatus =
+  | "sending"
+  | "sent"
+  | "delivered"
+  | "read"
+  | "error";
 
 export interface MessageSender {
   id: number;
@@ -41,6 +47,7 @@ export interface ChatLastMessage {
   unread: number;
   reply_message?: ReplyMessage;
   fwd_messages?: Message[];
+  sendStatus?: MessageSendStatus;
 }
 
 export interface ChatItem {
@@ -104,6 +111,8 @@ export interface Message {
   was_listened?: boolean;
   pinned_at?: number;
   message_tag?: string;
+  sendStatus?: MessageSendStatus;
+  localId?: string;
 }
 
 export interface StickerImage {

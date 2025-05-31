@@ -334,6 +334,7 @@ async function processMessageEdit(
             ...msg,
             text: messageData.text,
             attachments: messageData.attachments || [],
+            action: messageData.action,
           };
         }
         return msg;

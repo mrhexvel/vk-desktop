@@ -56,6 +56,21 @@ export interface Translations {
     community: string;
     wall: string;
   };
+  systemMessages: {
+    chatCreate: string;
+    chatTitleUpdate: string;
+    chatPhotoUpdate: string;
+    chatPhotoRemove: string;
+    userInvited: string;
+    userJoined: string;
+    userKicked: string;
+    userLeft: string;
+    messagePinned: string;
+    messageUnpinned: string;
+    userJoinedByLink: string;
+    unknownAction: string;
+    unknownTitle: string;
+  };
   attachments: {
     photo: string;
     video: string;

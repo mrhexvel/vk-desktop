@@ -1,9 +1,9 @@
-import { useTranslation } from "@/hooks/useTranslation";
-import { cn, parseTextWithLinks } from "@/lib/utils";
-import { Message } from "@/types/chat";
-import { formatTime } from "@/utils/formatters";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "../../hooks/useTranslation";
+import { cn, parseTextWithLinks } from "../../lib/utils";
+import type { Message } from "../../types/chat";
+import { formatTime } from "../../utils/formatters";
 import Avatar from "../ui/Avatar";
 import { AudioMessageAttachment } from "./attachments/AudioMessageAttachment";
 import { DocumentAttachment } from "./attachments/DocumentAttachment";
@@ -11,6 +11,7 @@ import { LinkAttachment } from "./attachments/LinkAttachment";
 import { PhotoAttachment } from "./attachments/PhotoAttachment";
 import { StickerAttachment } from "./attachments/StickerAttachment";
 import { VideoAttachment } from "./attachments/VideoAttachment";
+import { MessageStatus } from "./MessageStatus";
 import { ReplyBlock } from "./ReplyBlock";
 
 interface MessageBubbleProps {
@@ -30,9 +31,32 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showActions, setShowActions] = useState(false);
-  const { isOut, text, date, attachments, sender } = message;
+  const [isVisible, setIsVisible] = useState(false);
+  const [prevStatus, setPrevStatus] = useState(message.sendStatus);
+  const messageRef = useRef<HTMLDivElement>(null);
+  const {
+    isOut,
+    text,
+    date,
+    attachments,
+    sender,
+    sendStatus = "sent",
+  } = message;
 
   const isCurrentUser = isOut;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 10);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (prevStatus !== sendStatus) {
+      setPrevStatus(sendStatus);
+    }
+  }, [sendStatus, prevStatus]);
 
   const photoAttachments =
     attachments?.filter((att) => att.type === "photo") || [];
@@ -77,14 +101,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   return (
     <div
+      ref={messageRef}
       className={cn(
-        "group relative flex gap-3",
+        "group relative flex gap-3 w-full message-container",
         isCurrentUser ? "justify-end" : "justify-start",
-        grouped ? "mt-1" : "mt-4"
+        grouped ? "mt-1" : "mt-4",
+        !isVisible ? "opacity-0" : "animate-smooth-appear"
       )}
       id={`message-${message.id}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
+      style={{
+        transformOrigin: isCurrentUser ? "right bottom" : "left bottom",
+      }}
     >
       {!isCurrentUser && (
         <div className="w-8 flex-shrink-0">
@@ -106,7 +135,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       >
         {!isCurrentUser && !grouped && sender && (
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-[#6c5ce7]">
               {parseTextWithLinks(displayName)}
             </span>
             <span className="text-xs text-gray-400">
@@ -117,14 +146,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         <div
           className={cn(
-            "rounded-2xl p-2 break-words word-wrap max-w-full overflow-hidden relative",
+            "rounded-2xl p-2 break-words word-wrap max-w-full overflow-hidden message-content transition-smooth",
             isCurrentUser ? "bg-[#6c5ce7]" : "bg-[#2d2447]",
             !text && stickerAttachment && "bg-transparent flex flex-col",
             !text &&
               audioMessageAttachments.length > 0 &&
               "bg-transparent flex flex-col",
-            isHighlighted && "bg-blue-500",
-            isHighlighted && "animate-pulse-highlight"
+            isHighlighted &&
+              "ring-2 ring-[#6c5ce7] ring-opacity-50 shadow-lg shadow-[#6c5ce7]/20",
+            sendStatus === "sending" && "opacity-80"
           )}
         >
           {message.reply_message && (
@@ -188,13 +218,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         {showActions && (
           <div
             className={cn(
-              "absolute top-0 flex items-center gap-1 bg-[var(--color-card)] rounded-lg shadow-lg border border-[var(--color-border)] p-1 z-10 animate-scale-in",
+              "absolute top-0 flex items-center gap-1 bg-var(--color-card) rounded-lg shadow-lg border border-var(--color-border) p-1 z-10 animate-scale-in",
               isCurrentUser ? "-left-20" : "-right-20"
             )}
           >
             <button
               onClick={handleReply}
-              className="p-2 text-[var(--color-muted-foreground)] hover:text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)] rounded-md transition-smooth cursor-pointer"
+              className="p-2 text-var(--color-muted-foreground) hover:text-var(--color-card-foreground) hover:bg-var(--color-accent) rounded-md transition-smooth"
               title={t("messages.reply")}
             >
               <svg
@@ -216,7 +246,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             {text && (
               <button
                 onClick={handleCopyText}
-                className="p-2 text-[var(--color-muted-foreground)] hover:text-[var(--color-card-foreground)] hover:bg-[var(--color-accent)] rounded-md transition-smooth cursor-pointer"
+                className="p-2 text-var(--color-muted-foreground) hover:text-var(--color-card-foreground) hover:bg-var(--color-accent) rounded-md transition-smooth"
                 title={t("buttons.copy")}
               >
                 <svg
@@ -239,10 +269,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         )}
 
         {isCurrentUser && (
-          <div className="flex justify-end mt-1">
-            <span className="text-xs text-gray-400">
-              {formatTime(new Date(date))}
-            </span>
+          <div
+            className={cn(
+              "flex justify-end mt-1",
+              prevStatus !== sendStatus && "animate-status-change"
+            )}
+          >
+            <MessageStatus
+              status={sendStatus}
+              time={formatTime(new Date(date))}
+            />
           </div>
         )}
       </div>

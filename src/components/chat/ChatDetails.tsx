@@ -43,7 +43,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
 
     setLoading(true);
     try {
-      // Fetch chat members from VK API
       const response = await vkAPI.directRequest(
         "messages.getConversationMembers",
         {
@@ -82,7 +81,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
           })
           .filter(Boolean);
 
-        // Sort members: creator first, then admins, then online members, then others
         membersList.sort((a, b) => {
           if (a.role === "creator") return -1;
           if (b.role === "creator") return 1;
@@ -95,7 +93,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
 
         setMembers(membersList);
 
-        // Update chat admin status
         if (selectedChat) {
           const isAdmin = membersList.some(
             (member) =>
@@ -123,7 +120,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         user_id: memberId,
       });
 
-      // Update members list
       setMembers((prevMembers) =>
         prevMembers.filter((member) => member.id !== memberId)
       );
@@ -142,7 +138,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         role: "admin",
       });
 
-      // Update members list
       setMembers((prevMembers) =>
         prevMembers.map((member) => {
           if (member.id === memberId) {
@@ -166,7 +161,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         role: "member",
       });
 
-      // Update members list
       setMembers((prevMembers) =>
         prevMembers.map((member) => {
           if (member.id === memberId) {
@@ -185,7 +179,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
   };
 
   const handleSendMessage = (memberId: number) => {
-    // Implement sending a direct message to the user
     console.log("Send message to:", memberId);
   };
 
@@ -198,7 +191,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         user_id: userId,
       });
 
-      // Redirect to another chat or show empty state
       window.location.reload();
     } catch (error) {
       console.error("Error leaving chat:", error);
@@ -214,7 +206,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ onClose }) => {
         group_id: 0,
       });
 
-      // Refresh messages
       window.location.reload();
     } catch (error) {
       console.error("Error clearing chat history:", error);

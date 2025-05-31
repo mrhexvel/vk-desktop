@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { vkAPI } from "../services/vk-api-service";
 import type {
@@ -33,7 +34,11 @@ interface ChatsState {
     replyToMessageId?: number
   ) => Promise<void>;
   addMessage: (chatId: number, message: Message) => void;
-  updateMessage: (chatId: number, messageId: number, message: Message) => void;
+  updateMessage: (
+    chatId: number,
+    messageId: number | string,
+    message: Partial<Message>
+  ) => void;
   updateChatLastMessage: (chatId: number, message: Message) => void;
   markAsRead: (chatId: number, messageIds: number[]) => Promise<void>;
   fetchChatMembers: (chatId: number) => Promise<ChatMember[]>;
@@ -107,6 +112,7 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
                       }
                     : undefined,
                   fwd_messages: lastMessage.fwd_messages || [],
+                  sendStatus: "delivered",
                 }
               : undefined,
             unreadCount: conversation.unread_count || 0,
@@ -243,6 +249,7 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
             was_listened: item.was_listened,
             pinned_at: item.pinned_at,
             message_tag: item.message_tag,
+            sendStatus: "delivered",
           };
 
           if (item.reply_message) {
@@ -303,6 +310,32 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
     replyToMessageId?: number
   ) => {
     try {
+      const localId = uuidv4();
+      const tempId = Date.now();
+
+      const tempMessage: Message = {
+        id: tempId,
+        localId,
+        chatId,
+        fromId:
+          get().chats.find((chat) => chat.id === chatId)?.lastMessage?.fromId ||
+          0,
+        text,
+        date: Date.now(),
+        isOut: true,
+        attachments: attachments.map((att) => ({
+          type: "link",
+          link: { url: att },
+        })) as VKMessageAttachment[],
+        reply_message: replyToMessageId
+          ? get().messages[chatId]?.find((msg) => msg.id === replyToMessageId)
+          : undefined,
+        sendStatus: "sending",
+      };
+
+      get().addMessage(chatId, tempMessage);
+      get().updateChatLastMessage(chatId, tempMessage);
+
       const params: Record<string, string | number> = {
         peer_id: chatId,
         message: text,
@@ -317,31 +350,37 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
         params.reply_to = replyToMessageId;
       }
 
-      const response = await vkAPI.directRequest("messages.send", params);
+      try {
+        const response = await vkAPI.directRequest<number>(
+          "messages.send",
+          params
+        );
 
-      if (response) {
-        const newMessage: Message = {
-          id: response,
-          chatId,
-          fromId:
-            get().chats.find((chat) => chat.id === chatId)?.lastMessage
-              ?.fromId || 0,
-          text,
-          date: Date.now(),
-          isOut: true,
-          attachments: attachments.map((att) => ({
-            type: "link",
-            link: { url: att },
-          })) as VKMessageAttachment[],
-          reply_message: replyToMessageId
-            ? (get().messages[chatId]?.find(
-                (msg) => msg.id === replyToMessageId
-              ) as Message)
-            : undefined,
-        };
+        if (response) {
+          get().updateMessage(chatId, tempId, {
+            id: response,
+            sendStatus: "sent",
+          });
 
-        get().addMessage(chatId, newMessage);
-        get().updateChatLastMessage(chatId, newMessage);
+          setTimeout(() => {
+            get().updateMessage(chatId, response, {
+              sendStatus: "delivered",
+            });
+          }, 500);
+
+          setTimeout(() => {
+            get().updateMessage(chatId, response, {
+              sendStatus: "read",
+            });
+          }, 1500);
+        }
+      } catch (error) {
+        get().updateMessage(chatId, tempId, {
+          sendStatus: "error",
+        });
+
+        console.error("Error sending message:", error);
+        throw error;
       }
     } catch (error) {
       set({
@@ -355,7 +394,13 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
     set((state) => {
       const currentMessages = state.messages[chatId] || [];
 
-      if (currentMessages.some((msg) => msg.id === message.id)) {
+      if (
+        currentMessages.some(
+          (msg) =>
+            (message.id && msg.id === message.id) ||
+            (message.localId && msg.localId === message.localId)
+        )
+      ) {
         return state;
       }
 
@@ -372,18 +417,54 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
     });
   },
 
-  updateMessage: (chatId: number, messageId: number, message: Message) => {
+  updateMessage: (
+    chatId: number,
+    messageId: number | string,
+    updates: Partial<Message>
+  ) => {
     set((state) => {
       const currentMessages = state.messages[chatId] || [];
-      const updatedMessages = currentMessages.map((msg) =>
-        msg.id === messageId ? message : msg
-      );
+
+      const updatedMessages = currentMessages.map((msg) => {
+        if (
+          (typeof messageId === "number" && msg.id === messageId) ||
+          (typeof messageId === "string" && msg.localId === messageId)
+        ) {
+          return { ...msg, ...updates };
+        }
+        return msg;
+      });
+
+      const chats = state.chats.map((chat) => {
+        if (chat.id === chatId && chat.lastMessage) {
+          const lastMsg = updatedMessages[updatedMessages.length - 1];
+          if (
+            (typeof messageId === "number" &&
+              chat.lastMessage.id === messageId) ||
+            (lastMsg && lastMsg.localId === messageId)
+          ) {
+            return {
+              ...chat,
+              lastMessage: {
+                ...chat.lastMessage,
+                ...updates,
+                id:
+                  typeof messageId === "number"
+                    ? messageId
+                    : chat.lastMessage.id,
+              },
+            };
+          }
+        }
+        return chat;
+      });
 
       return {
         messages: {
           ...state.messages,
           [chatId]: updatedMessages,
         },
+        chats,
       };
     });
   },
@@ -404,6 +485,7 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
               unread: message.isOut ? 0 : (chat.lastMessage?.unread || 0) + 1,
               reply_message: message.reply_message as ReplyMessage | undefined,
               fwd_messages: message.fwd_messages,
+              sendStatus: message.sendStatus,
             },
           };
         }
@@ -520,7 +602,7 @@ export const useChatsStore = create<ChatsState>((set, get) => ({
     try {
       await vkAPI.directRequest("messages.removeChatUser", {
         chat_id: chatId - 2000000000,
-        user_id: 0, // Current user
+        user_id: 0,
       });
       return true;
     } catch (error) {
