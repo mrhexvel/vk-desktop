@@ -15,11 +15,14 @@ export function getChatTitle(
     return conversation.conversation.chat_settings?.title;
   }
 
-  return `${
-    getProfileById(profiles!, conversation!.conversation.peer.id)?.first_name
-  } ${
-    getProfileById(profiles!, conversation!.conversation.peer.id)?.last_name
-  }`;
+  return {
+    title: `${
+      getProfileById(profiles!, conversation!.conversation.peer.id)?.first_name
+    } ${
+      getProfileById(profiles!, conversation!.conversation.peer.id)?.last_name
+    }`,
+    id: conversation!.conversation.peer.id,
+  };
 }
 
 export const getMessageSendersInfo = async (fromIds: number[]) => {

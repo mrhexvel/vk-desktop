@@ -1,9 +1,9 @@
-"use client";
-
+import { cropText } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
+import type { ChatItem } from "@/types/chat";
+import { NotebookText } from "lucide-react";
 import type React from "react";
-import { cropText } from "../../lib/utils";
-import type { ChatItem } from "../../types/chat";
-import Avatar from "../UI/Avatar";
+import Avatar from "../ui/Avatar";
 
 interface SidebarChatItemProps {
   chat: ChatItem;
@@ -17,6 +17,7 @@ const SidebarChatItem: React.FC<SidebarChatItemProps> = ({
   onClick,
 }) => {
   const lastMessage = chat.lastMessage;
+  const userId = useAuthStore((state) => state.userId);
 
   const getLastMessageText = () => {
     if (!lastMessage) return "";
@@ -52,7 +53,13 @@ const SidebarChatItem: React.FC<SidebarChatItemProps> = ({
       onClick={onClick}
     >
       <div className="relative mr-3">
-        <Avatar src={chat.avatar} size="md" />
+        {chat.id === userId ? (
+          <div className="p-2 rounded-full bg-purple-400">
+            <NotebookText />
+          </div>
+        ) : (
+          <Avatar src={chat.avatar} size="md" />
+        )}
         {showOnlineStatus && (
           <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-[#4cd137] border-2 border-[#18142b]"></span>
         )}
@@ -65,7 +72,7 @@ const SidebarChatItem: React.FC<SidebarChatItemProps> = ({
               selected ? "text-white" : "text-gray-300"
             }`}
           >
-            {chat.title}
+            {chat.id === userId ? "Избранные" : chat.title}
           </h3>
         </div>
 

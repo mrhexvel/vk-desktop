@@ -1,7 +1,7 @@
+import { useTranslation } from "@/hooks/useTranslation";
+import type { Message } from "@/types/chat";
+import { formatMessageDate } from "@/utils/formatters";
 import type React from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import type { Message } from "../../types/chat";
-import { formatMessageDate } from "../../utils/formatters";
 import MessageBubble from "./MessageBubble";
 
 interface MessageListProps {

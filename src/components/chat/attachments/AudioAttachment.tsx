@@ -1,7 +1,6 @@
-"use client";
-
-import { cn, formatTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { VKAudioMessageAttachment } from "@/types/vk.type";
+import { formatTime } from "@/utils/formatters";
 import { Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -122,8 +121,8 @@ export const AudioMessage = ({
       <div className="flex-1">
         <canvas ref={canvasRef} width={200} height={40} className="w-full" />
         <div className="flex justify-between text-xs text-gray-400 mt-1">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+          <span>{formatTime(new Date(currentTime * 1000))}</span>
+          <span>{formatTime(new Date(duration * 1000))}</span>
         </div>
       </div>
 

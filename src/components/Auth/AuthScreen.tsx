@@ -1,9 +1,7 @@
-"use client";
-
+import { useTranslation } from "@/hooks/useTranslation";
+import { useAuthStore } from "@/store/authStore";
 import type React from "react";
 import { useEffect } from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { useAuthStore } from "../../store/authStore";
 
 const AuthScreen: React.FC = () => {
   const { loginWithVKID, error, loading, clearError } = useAuthStore();

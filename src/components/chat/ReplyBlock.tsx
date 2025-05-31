@@ -1,7 +1,7 @@
+import { useTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
+import type { ReplyBlockProps } from "@/types/components";
 import type React from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { cn } from "../../lib/utils";
-import type { ReplyBlockProps } from "../../types/components";
 
 export const ReplyBlock: React.FC<ReplyBlockProps> = ({
   message,

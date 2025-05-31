@@ -1,15 +1,15 @@
 // @ts-nocheck
+import { useTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
+import { vkAPI } from "@/services/vk-api-service";
+import { useAuthStore } from "@/store/authStore";
+import { useChatsStore } from "@/store/chatsStore";
+import type { ChatMember } from "@/types/chat";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { cn } from "../../lib/utils";
-import { vkAPI } from "../../services/vk-api-service";
-import { useAuthStore } from "../../store/authStore";
-import { useChatsStore } from "../../store/chatsStore";
-import type { ChatMember } from "../../types/chat";
-import Avatar from "../UI/Avatar";
-import { ConfirmModal } from "../UI/Modal";
-import { ScrollArea } from "../UI/ScrollArea";
+import Avatar from "../ui/Avatar";
+import { ConfirmModal } from "../ui/Modal";
+import { ScrollArea } from "../ui/scroll-area";
 import ChatMemberItem from "./ChatMemberItem";
 
 interface ChatDetailsProps {

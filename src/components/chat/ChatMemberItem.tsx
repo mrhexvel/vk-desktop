@@ -1,10 +1,8 @@
-"use client";
-
+import { useTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
+import type { ChatMember } from "@/types/chat";
 import type React from "react";
 import { useState } from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { cn } from "../../lib/utils";
-import type { ChatMember } from "../../types/chat";
 import Avatar from "../UI/Avatar";
 import { ConfirmModal } from "../UI/Modal";
 

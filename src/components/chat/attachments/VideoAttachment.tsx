@@ -1,37 +1,42 @@
-import type React from "react"
+import { VKVideoAttachment } from "@/types/vk.type";
+import type React from "react";
 
 interface VideoAttachmentProps {
-  attachments: any[]
+  attachments: VKVideoAttachment[];
 }
 
-export const VideoAttachment: React.FC<VideoAttachmentProps> = ({ attachments }) => {
-  if (attachments.length === 0) return null
+export const VideoAttachment: React.FC<VideoAttachmentProps> = ({
+  attachments,
+}) => {
+  if (attachments.length === 0) return null;
 
-  const getVideoPreview = (video: any) => {
-    if (!video || !video.video) return null
+  const getVideoPreview = (video: VKVideoAttachment) => {
+    if (!video || !video.video) return null;
 
-    const image = video.video.image || video.video.first_frame
+    const image = video.video.image || video.video.first_frame;
     if (!image || !Array.isArray(image) || image.length === 0) {
-      return "/video-production-setup.png"
+      return "/video-production-setup.png";
     }
 
-    const sortedImages = [...image].sort((a, b) => b.width * b.height - a.width * a.height)
-    return sortedImages[0].url
-  }
+    const sortedImages = [...image].sort(
+      (a, b) => b.width * b.height - a.width * a.height
+    );
+    return sortedImages[0].url;
+  };
 
   const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = Math.floor(seconds % 60)
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="mt-2 space-y-2">
       {attachments.map((attachment, index) => {
-        const video = attachment.video
-        const previewUrl = getVideoPreview(attachment)
-        const title = video?.title || "Видео"
-        const duration = video?.duration || 0
+        const video = attachment.video;
+        const previewUrl = getVideoPreview(attachment);
+        const title = video?.title || "Видео";
+        const duration = video?.duration || 0;
 
         return (
           <div key={index} className="rounded-lg overflow-hidden">
@@ -68,8 +73,8 @@ export const VideoAttachment: React.FC<VideoAttachmentProps> = ({ attachments })
               <p className="text-white font-medium truncate">{title}</p>
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};

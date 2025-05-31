@@ -1,11 +1,9 @@
-"use client";
-
+import { useTranslation } from "@/hooks/useTranslation";
+import { useAuthStore } from "@/store/authStore";
+import { useChatsStore } from "@/store/chatsStore";
 import type React from "react";
 import { useState } from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { useAuthStore } from "../../store/authStore";
-import { useChatsStore } from "../../store/chatsStore";
-import { ScrollArea } from "../UI/ScrollArea";
+import { ScrollArea } from "../ui/scroll-area";
 import SidebarChatItem from "./SidebarChatItem";
 
 const Sidebar: React.FC = () => {

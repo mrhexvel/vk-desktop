@@ -1,20 +1,28 @@
-import type React from "react"
-import type { AvatarProps } from "../../types/components"
+import type { AvatarProps } from "@/types/components";
+import type React from "react";
 
-const Avatar: React.FC<AvatarProps> = ({ src, alt = "Avatar", size = "md", online = false, className = "" }) => {
+const Avatar: React.FC<AvatarProps> = ({
+  src,
+  alt = "Avatar",
+  size = "md",
+  online = false,
+  className = "",
+}) => {
   const sizeClass = {
     sm: "h-8 w-8",
     md: "h-10 w-10",
     lg: "h-16 w-16",
-  }[size]
+  }[size];
 
   const onlineIndicatorClass = {
     sm: "h-2.5 w-2.5 -right-0.5 -bottom-0.5",
     md: "h-3 w-3 -right-0.5 -bottom-0.5",
     lg: "h-3.5 w-3.5 -right-0.5 -bottom-0.5",
-  }[size]
+  }[size];
 
-  const fallbackUrl = `/placeholder.svg?height=${size === "lg" ? 64 : size === "md" ? 40 : 32}&width=${size === "lg" ? 64 : size === "md" ? 40 : 32}&query=avatar`
+  const fallbackUrl = `/placeholder.svg?height=${
+    size === "lg" ? 64 : size === "md" ? 40 : 32
+  }&width=${size === "lg" ? 64 : size === "md" ? 40 : 32}&query=avatar`;
 
   return (
     <div className={`relative flex-shrink-0 ${className}`}>
@@ -25,8 +33,8 @@ const Avatar: React.FC<AvatarProps> = ({ src, alt = "Avatar", size = "md", onlin
             alt={alt}
             className="h-full w-full object-cover"
             onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement
-              target.src = fallbackUrl
+              const target = e.currentTarget as HTMLImageElement;
+              target.src = fallbackUrl;
             }}
           />
         ) : (
@@ -43,7 +51,7 @@ const Avatar: React.FC<AvatarProps> = ({ src, alt = "Avatar", size = "md", onlin
         ></span>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Avatar
+export default Avatar;

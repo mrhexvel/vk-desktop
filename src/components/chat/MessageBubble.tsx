@@ -1,10 +1,8 @@
-"use client";
-
+import { cn, parseTextWithLinks } from "@/lib/utils";
+import type { MessageBubbleProps } from "@/types/components";
+import { formatTime } from "@/utils/formatters";
 import type React from "react";
-import { cn, parseTextWithLinks } from "../../lib/utils";
-import type { MessageBubbleProps } from "../../types/components";
-import { formatTime } from "../../utils/formatters";
-import Avatar from "../UI/Avatar";
+import Avatar from "../ui/Avatar";
 import { AudioMessageAttachment } from "./attachments/AudioMessageAttachment";
 import { DocumentAttachment } from "./attachments/DocumentAttachment";
 import { LinkAttachment } from "./attachments/LinkAttachment";

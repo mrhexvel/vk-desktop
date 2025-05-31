@@ -1,8 +1,6 @@
-"use client";
-
+import { useChatsStore } from "@/store/chatsStore";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { useChatsStore } from "../../store/chatsStore";
 import ChatDetails from "../Chat/ChatDetails";
 import ChatWindow from "../Chat/ChatWindow";
 import Sidebar from "../Sidebar/Sidebar";

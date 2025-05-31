@@ -1,9 +1,10 @@
+import { useTranslation } from "@/hooks/useTranslation";
+import { useAuthStore } from "@/store/authStore";
+import { useChatsStore } from "@/store/chatsStore";
+import { NotebookText } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { useAuthStore } from "../../store/authStore";
-import { useChatsStore } from "../../store/chatsStore";
-import Avatar from "../UI/Avatar";
+import Avatar from "../ui/Avatar";
 import { ScrollArea } from "../ui/scroll-area";
 import ChatInput from "./ChatInput";
 import MessageList from "./MessageList";
@@ -18,6 +19,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   toggleDetails,
 }) => {
   const { selectedChatId, chats, messages, loadingMessages } = useChatsStore();
+  const userId = useAuthStore((state) => state.userId);
 
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -212,26 +214,34 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="flex h-full flex-col animate-fade-in">
       <div className="flex items-center justify-between bg-var(--color-sidebar) px-4 py-3 border-b border-var(--color-sidebar-border) glass-effect">
         <div className="flex items-center">
-          <Avatar
-            src={selectedChat.avatar}
-            online={showOnlineStatus}
-            size="md"
-            className="mr-3"
-          />
+          {selectedChat.id === userId ? (
+            <div className="p-2 mr-3 rounded-full bg-purple-400">
+              <NotebookText />
+            </div>
+          ) : (
+            <Avatar
+              src={selectedChat.avatar}
+              online={showOnlineStatus}
+              size="md"
+              className="mr-3"
+            />
+          )}
           <div>
             <h2 className="text-base font-medium text-var(--color-sidebar-foreground)">
               {selectedChat.title}
             </h2>
-            <p className="text-xs text-var(--color-muted-foreground)">
-              {selectedChat.type === "user"
-                ? selectedChat.online
-                  ? t("status.online")
-                  : t("status.offline")
-                : ""}
-              {selectedChat.type === "chat" &&
-                selectedChat.membersCount &&
-                ` • ${selectedChat.membersCount} ${t("chat.members")}`}
-            </p>
+            {selectedChat.id !== userId && (
+              <p className="text-xs text-var(--color-muted-foreground)">
+                {selectedChat.type === "user"
+                  ? selectedChat.online
+                    ? t("status.online")
+                    : t("status.offline")
+                  : ""}
+                {selectedChat.type === "chat" &&
+                  selectedChat.membersCount &&
+                  ` • ${selectedChat.membersCount} ${t("chat.members")}`}
+              </p>
+            )}
           </div>
         </div>
 

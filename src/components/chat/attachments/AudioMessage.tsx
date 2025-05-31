@@ -1,9 +1,7 @@
-// @ts-nocheck
-
+import { cn } from "@/lib/utils";
+import type { AudioMessageProps } from "@/types/components";
+import { formatTime } from "@/utils/formatters";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "../../../lib/utils";
-import type { AudioMessageProps } from "../../../types/components";
-import { formatTime } from "../../../utils/formatters";
 
 export const AudioMessage = ({
   isCurrentUser,
@@ -18,7 +16,7 @@ export const AudioMessage = ({
 
   const normalizedWaveform = audioMessage.waveform
     ? audioMessage.waveform.map(
-        (value: number) => value / Math.max(...audioMessage.waveform)
+        (value: number) => value / Math.max(...audioMessage.waveform!)
       )
     : Array(50).fill(0.5);
 

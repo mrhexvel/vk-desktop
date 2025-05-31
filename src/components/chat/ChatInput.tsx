@@ -1,9 +1,7 @@
-"use client";
-
+import { useTranslation } from "@/hooks/useTranslation";
+import { useChatsStore } from "@/store/chatsStore";
 import type React from "react";
 import { useRef, useState } from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { useChatsStore } from "../../store/chatsStore";
 
 interface ChatInputProps {
   chatId: number;
