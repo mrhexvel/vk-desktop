@@ -1,6 +1,6 @@
 import type React from "react";
 import type { ReactNode } from "react";
-import type { Message, MessageSender } from "./chat";
+import type { Message, MessageSender, ReplyMessage } from "./chat";
 import type { VKMessageAttachment } from "./vk-api";
 
 export type AvatarSize = "sm" | "md" | "lg";
@@ -37,15 +37,20 @@ export interface ChatDetailsProps {
 export interface MessageBubbleProps {
   message: Message;
   grouped?: boolean;
+  isHighlighted?: boolean;
+  onReplyClick?: (messageId: number) => void;
 }
 
 export interface MessageListProps {
   messages: Message[];
+  highlightedMessageId?: number | null;
+  onReplyClick?: (messageId: number) => void;
 }
 
 export interface ReplyBlockProps {
-  message: Partial<Message>;
+  message: ReplyMessage;
   profile?: MessageSender;
+  onReplyClick?: (messageId: number) => void;
 }
 
 export interface SidebarChatItemProps {

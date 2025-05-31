@@ -16,6 +16,8 @@ import { ReplyBlock } from "./ReplyBlock";
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   grouped = false,
+  isHighlighted = false,
+  onReplyClick,
 }) => {
   const { isOut, text, date, attachments, sender } = message;
 
@@ -55,6 +57,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         isCurrentUser ? "justify-end" : "justify-start",
         grouped ? "mt-1" : "mt-4"
       )}
+      id={`message-${message.id}`}
     >
       {!isCurrentUser && (
         <div className="w-8 flex-shrink-0">
@@ -92,13 +95,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             !text && stickerAttachment && "bg-transparent flex flex-col",
             !text &&
               audioMessageAttachments.length > 0 &&
-              "bg-transparent flex flex-col"
+              "bg-transparent flex flex-col",
+            isHighlighted && "bg-blue-500",
+            isHighlighted && "animate-pulse-highlight"
           )}
         >
           {message.reply_message && (
             <ReplyBlock
               message={message.reply_message}
               profile={message.reply_message.sender}
+              onReplyClick={onReplyClick}
             />
           )}
 

@@ -1,12 +1,10 @@
-"use client";
-
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useAuthStore } from "../../store/authStore";
 import { useChatsStore } from "../../store/chatsStore";
 import Avatar from "../UI/Avatar";
-import { ScrollArea } from "../UI/ScrollArea";
+import { ScrollArea } from "../ui/scroll-area";
 import ChatInput from "./ChatInput";
 import MessageList from "./MessageList";
 
@@ -20,46 +18,126 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   toggleDetails,
 }) => {
   const { selectedChatId, chats, messages, loadingMessages } = useChatsStore();
+
   const scrollViewportRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<
+    number | null
+  >(null);
+
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const selectedChat = chats.find((chat) => chat.id === selectedChatId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const chatMessages = selectedChatId ? messages[selectedChatId] || [] : [];
 
-  const checkScrollPosition = useCallback(() => {
-    if (!scrollViewportRef.current) return;
+  const getScrollViewport = useCallback(() => {
+    if (scrollViewportRef.current) {
+      return scrollViewportRef.current;
+    }
 
-    const { scrollTop, scrollHeight, clientHeight } = scrollViewportRef.current;
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      ) as HTMLDivElement;
+      if (viewport) {
+        return viewport;
+      }
+    }
+
+    return null;
+  }, []);
+
+  const checkScrollPosition = useCallback(() => {
+    const viewport = getScrollViewport();
+    if (!viewport) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
     const threshold = 100;
     const atBottom = scrollHeight - scrollTop - clientHeight <= threshold;
 
     setIsAtBottom(atBottom);
     setShowScrollButton(!atBottom && chatMessages.length > 0);
-  }, [chatMessages.length]);
+  }, [chatMessages.length, getScrollViewport]);
 
-  const scrollToBottom = useCallback((smooth = true) => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
-        block: "end",
-      });
-    }
-  }, []);
+  const scrollToBottom = useCallback(
+    (smooth = true) => {
+      const viewport = getScrollViewport();
+      if (viewport) {
+        viewport.scrollTo({
+          top: viewport.scrollHeight,
+          behavior: smooth ? "smooth" : "auto",
+        });
+      } else if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({
+          behavior: smooth ? "smooth" : "auto",
+          block: "end",
+        });
+      }
+    },
+    [getScrollViewport]
+  );
 
-  // Скролл к последнему сообщению при изменении сообщений
+  const scrollToMessage = useCallback(
+    (messageId: number) => {
+      console.log("Scrolling to message:", messageId);
+
+      const messageElement = document.getElementById(`message-${messageId}`);
+      const viewport = getScrollViewport();
+
+      if (messageElement && viewport) {
+        setHighlightedMessageId(messageId);
+
+        const messageRect = messageElement.getBoundingClientRect();
+        const viewportRect = viewport.getBoundingClientRect();
+
+        const currentScrollTop = viewport.scrollTop;
+        const messageOffsetTop =
+          messageRect.top - viewportRect.top + currentScrollTop;
+        const viewportHeight = viewport.clientHeight;
+        const targetScrollTop =
+          messageOffsetTop - viewportHeight / 2 + messageRect.height / 2;
+
+        viewport.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: "smooth",
+        });
+
+        setTimeout(() => {
+          setHighlightedMessageId(null);
+        }, 2000);
+      } else {
+        console.warn(
+          "Could not scroll to message - missing element or viewport"
+        );
+
+        if (messageElement) {
+          setHighlightedMessageId(messageId);
+          messageElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          setTimeout(() => {
+            setHighlightedMessageId(null);
+          }, 3000);
+        }
+      }
+    },
+    [getScrollViewport]
+  );
+
   useEffect(() => {
     if (isAtBottom) {
       scrollToBottom(false);
     }
   }, [chatMessages, scrollToBottom, isAtBottom]);
 
-  // Скролл к последнему сообщению при смене чата
   useEffect(() => {
     if (selectedChatId) {
-      // Небольшая задержка для уверенности, что DOM обновился
       setTimeout(() => {
         scrollToBottom(false);
         setIsAtBottom(true);
@@ -68,12 +146,31 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [selectedChatId, scrollToBottom]);
 
-  // Удаляем автоматическое открытие деталей для групповых чатов
-  // useEffect(() => {
-  //   if (isGroupChat && !showDetails) {
-  //     toggleDetails()
-  //   }
-  // }, [isGroupChat, showDetails, toggleDetails])
+  useEffect(() => {
+    checkScrollPosition();
+  }, [chatMessages, checkScrollPosition]);
+
+  useEffect(() => {
+    const viewport = getScrollViewport();
+    if (viewport) {
+      const handleScrollEvent = () => checkScrollPosition();
+      viewport.addEventListener("scroll", handleScrollEvent);
+
+      checkScrollPosition();
+
+      return () => {
+        viewport.removeEventListener("scroll", handleScrollEvent);
+      };
+    }
+  }, [getScrollViewport, checkScrollPosition, selectedChatId]);
+
+  const handleScroll = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (_event: React.UIEvent<HTMLDivElement>) => {
+      checkScrollPosition();
+    },
+    [checkScrollPosition]
+  );
 
   const showOnlineStatus =
     selectedChat?.type === "user" && selectedChat?.online;
@@ -112,8 +209,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <div className="flex h-full flex-col animate-fade-in gradient-bg">
-      <div className="flex items-center justify-between bg-[#1e1e24] px-4 py-3">
+    <div className="flex h-full flex-col animate-fade-in">
+      <div className="flex items-center justify-between bg-var(--color-sidebar) px-4 py-3 border-b border-var(--color-sidebar-border) glass-effect">
         <div className="flex items-center">
           <Avatar
             src={selectedChat.avatar}
@@ -140,7 +237,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
         <div className="flex items-center space-x-3">
           <button
-            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg[-var(--color-sidebar-accent)] transition-smooth hover-lift"
+            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift"
             title={t("buttons.call")}
           >
             <svg
@@ -159,7 +256,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </svg>
           </button>
           <button
-            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
+            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift"
             title={t("buttons.video")}
           >
             <svg
@@ -179,9 +276,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </button>
           <button
             onClick={toggleDetails}
-            className={`text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift ${
+            className={`text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift ${
               showDetails
-                ? "bg-[var(--color-sidebar-accent)] text-var(--color-sidebar-foreground)"
+                ? "bg-var(--color-sidebar-accent) text-var(--color-sidebar-foreground)"
                 : ""
             }`}
             title={t("buttons.info")}
@@ -206,7 +303,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               const { logout } = useAuthStore.getState();
               logout();
             }}
-            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-[var(--color-sidebar-accent)] transition-smooth hover-lift"
+            className="text-var(--color-muted-foreground) hover:text-var(--color-sidebar-foreground) p-2 rounded-full hover:bg-var(--color-sidebar-accent) transition-smooth hover-lift"
             title={t("sidebar.logout")}
           >
             <svg
@@ -230,8 +327,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="relative flex-1 overflow-hidden">
         <ScrollArea
           className="h-full"
-          viewportRef={scrollViewportRef}
-          onScroll={checkScrollPosition}
+          ref={scrollAreaRef}
+          onScroll={handleScroll}
         >
           <div className="p-4">
             {loadingMessages ? (
@@ -240,7 +337,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               </div>
             ) : (
               <>
-                <MessageList messages={chatMessages} />
+                <MessageList
+                  messages={chatMessages}
+                  highlightedMessageId={highlightedMessageId}
+                  onReplyClick={scrollToMessage}
+                />
                 <div ref={messagesEndRef} />
               </>
             )}
@@ -250,7 +351,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {showScrollButton && (
           <button
             onClick={() => scrollToBottom(true)}
-            className="floating-action animate-scale-in"
+            className="fixed bottom-20 right-6 z-50 h-12 w-12 rounded-full bg-var(--color-primary) text-white shadow-lg hover:bg-opacity-90 transition-all duration-300 flex items-center justify-center animate-scale-in hover:scale-110 cursor-pointer"
             title={t("buttons.scrollToBottom")}
             style={{
               position: "absolute",

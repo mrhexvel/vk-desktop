@@ -3,14 +3,18 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { cn } from "../../lib/utils";
 import type { ReplyBlockProps } from "../../types/components";
 
-export const ReplyBlock: React.FC<ReplyBlockProps> = ({ message, profile }) => {
+export const ReplyBlock: React.FC<ReplyBlockProps> = ({
+  message,
+  profile,
+  onReplyClick,
+}) => {
   const { t } = useTranslation();
 
   const displayName = profile
     ? `${profile.firstName} ${profile.lastName}`
     : message.sender
     ? `${message.sender.firstName} ${message.sender.lastName}`
-    : message.fromId && message.fromId > 0
+    : message.from_id && message.from_id > 0
     ? t("messages.user")
     : t("messages.community");
 
@@ -65,8 +69,21 @@ export const ReplyBlock: React.FC<ReplyBlockProps> = ({ message, profile }) => {
     }
   };
 
+  const handleClick = () => {
+    if (onReplyClick && message.id) {
+      onReplyClick(message.id);
+    }
+  };
+
   return (
-    <div className="border-l-2 border-var(--color-border) pl-2 mb-2 opacity-80">
+    <div
+      className={cn(
+        "border-l-2 border-var(--color-border) pl-2 mb-2 opacity-80 transition-all duration-200",
+        onReplyClick &&
+          "cursor-pointer hover:opacity-100 hover:border-[#6c5ce7] hover:bg-white/5 rounded-r-md pr-2 py-1"
+      )}
+      onClick={handleClick}
+    >
       <div className="text-sm font-medium text-var(--color-primary)">
         {displayName}
       </div>

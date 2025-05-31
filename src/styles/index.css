@@ -377,3 +377,17 @@ body {
   min-height: 100vh;
   margin: 0;
 }
+
+@keyframes pulse-highlight {
+  0%,
+  100% {
+    background-color: rgba(108, 92, 231, 0.1);
+  }
+  50% {
+    background-color: rgba(108, 92, 231, 0.3);
+  }
+}
+
+.animate-pulse-highlight {
+  animation: pulse-highlight 2s ease-in-out;
+}

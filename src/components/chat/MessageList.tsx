@@ -6,9 +6,15 @@ import MessageBubble from "./MessageBubble";
 
 interface MessageListProps {
   messages: Message[];
+  highlightedMessageId?: number | null;
+  onReplyClick?: (messageId: number) => void;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+const MessageList: React.FC<MessageListProps> = ({
+  messages,
+  highlightedMessageId,
+  onReplyClick,
+}) => {
   const { t } = useTranslation();
 
   if (messages.length === 0) {
@@ -39,7 +45,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
       {Object.entries(groupedMessages).map(([dateKey, messagesGroup]) => (
         <div key={dateKey} className="space-y-1 animate-fade-in">
           <div className="mb-2 flex justify-center">
-            <div className="rounded-full bg-[var(--color-muted)] bg-opacity-70 px-3 py-1 text-xs text-var(--color-muted-foreground) glass-effect">
+            <div className="rounded-full bg-var(--color-muted) bg-opacity-70 px-3 py-1 text-xs text-var(--color-muted-foreground) glass-effect">
               {formatMessageDate(new Date(messagesGroup[0].date))}
             </div>
           </div>
@@ -48,17 +54,18 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
             {messagesGroup.map((message, index) => {
               const prevMessage = index > 0 ? messagesGroup[index - 1] : null;
               const isGrouped =
-                (prevMessage &&
-                  prevMessage.fromId === message.fromId &&
-                  message.date - prevMessage.date < 60000 &&
-                  !prevMessage.isOut === !message.isOut) ||
-                false;
+                prevMessage &&
+                prevMessage.fromId === message.fromId &&
+                message.date - prevMessage.date < 60000 &&
+                !prevMessage.isOut === !message.isOut;
 
               return (
                 <MessageBubble
                   key={message.id}
                   message={message}
-                  grouped={isGrouped}
+                  grouped={isGrouped!}
+                  isHighlighted={highlightedMessageId === message.id}
+                  onReplyClick={onReplyClick}
                 />
               );
             })}
